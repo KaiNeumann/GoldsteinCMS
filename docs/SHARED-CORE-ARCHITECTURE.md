@@ -6,7 +6,7 @@ This document records architectural decisions and design plans for the Goldstein
 
 ## Chapter 5: Shared Core Architecture
 
-**Status:** Proposed
+**Status:** Implemented
 **Date:** 2026-06-11
 **Goal:** Define a shared core pattern that balances code reuse, customer independence, and safe update propagation across multiple CMS deployments.
 

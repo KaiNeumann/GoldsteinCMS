@@ -6,7 +6,7 @@ This document records architectural decisions and design plans for the Goldstein
 
 ## Chapter 1: Pluggable Storage Adapters
 
-**Status:** Planned  
+**Status:** Implemented  
 **Date:** 2026-06-11  
 **Goal:** Make the content storage layer switchable so each customer deployment can use either GitHub Gist (current) or Cloudflare KV, with the backend selected automatically based on configured environment variables.
 

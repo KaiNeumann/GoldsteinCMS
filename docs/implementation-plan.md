@@ -207,7 +207,7 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 | 5.1 | Create `goldstein-core` repo with shared code | New repo | ~500 | ⬜ Future |
 | 5.2 | Create `templates/site.json.example` | `templates/site.json.example` | ~40 | ✅ |
 | 5.3 | Create `templates/package.json.example` | `templates/package.json.example` | ~30 | ✅ |
-| 5.4 | Document core/custom boundary | `docs/todo/shared-core-design.md` | Done | ✅ |
+| 5.4 | Document core/custom boundary | `docs/SHARED-CORE-ARCHITECTURE.md` | Done | ✅ |
 | 5.5 | Create customer onboarding script | `scripts/onboard.sh` | ~150 | ✅ |
 | 5.6 | Test submodule update workflow | Manual | — | ⬜ Future |
 | 5.7 | Migrate existing customer (if any) | Per customer | ~30 | ⬜ Future |
@@ -338,7 +338,7 @@ After Phase 5, customers use a git submodule pinned to a version tag:
 6. **Add custom pages** — create in `src/pages/`, import from core
 7. **Configure storage and deploy**
 
-See `docs/todo/shared-core-design.md` for the full shared core architecture.
+See `docs/SHARED-CORE-ARCHITECTURE.md` for the full shared core architecture.
 
 ---
 

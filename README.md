@@ -118,8 +118,12 @@ GoldsteinCMS/
 - `docs/BACKUP.md` — backup and restore procedures
 - `docs/USER-GUIDE.md` — editor and administrator guide
 - `docs/SHARED-CORE.md` — shared core architecture and onboarding
+- `docs/SHARED-CORE-ARCHITECTURE.md` — shared core design decisions
+- `docs/STORAGE-ADAPTERS.md` — pluggable storage adapter design
+- `docs/THEMING.md` — theming and dark mode design
+- `docs/SITE-CONFIGURATION.md` — multi-customer site configuration design
+- `docs/CMS-COMPONENTS.md` — semantic CMS components design
 - `docs/implementation-plan.md` — migration roadmap
-- `docs/todo/` — design documents for planned features
 
 ## License
 

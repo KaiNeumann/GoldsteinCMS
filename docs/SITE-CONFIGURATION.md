@@ -6,7 +6,7 @@ This document records architectural decisions and design plans for the Goldstein
 
 ## Chapter 3: Multi-Customer Site Configuration
 
-**Status:** Proposed  
+**Status:** Implemented  
 **Date:** 2026-06-11  
 **Goal:** Make the site structure (pages, navigation, blocks, sidebar, footer) configurable per customer deployment via a static config file, so that adapting the CMS for a new customer requires only editing one JSON/JSONC file — not touching React component code.
 

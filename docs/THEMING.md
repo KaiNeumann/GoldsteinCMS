@@ -6,7 +6,7 @@ This document records architectural decisions and design plans for the Goldstein
 
 ## Chapter 2: Theming Support with Dark Mode
 
-**Status:** Planned  
+**Status:** Implemented  
 **Date:** 2026-06-11  
 **Goal:** Add switchable CSS theming (including dark mode) to the CMS using CSS Custom Properties and Tailwind 4's `@theme` directive, without introducing new dependencies or significant complexity.
 

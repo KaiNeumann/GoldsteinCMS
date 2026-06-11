@@ -6,7 +6,7 @@ This document records architectural decisions and design plans for the Goldstein
 
 ## Chapter 4: Semantic Standard Components for CMS Content
 
-**Status:** Proposed  
+**Status:** Implemented  
 **Date:** 2026-06-11  
 **Goal:** Add reusable, semantic UI components (image sliders, lightboxes, galleries, collapsible elements, accordions, submenus) that editors can insert into CMS-managed HTML content via simple markup, without introducing heavy dependencies or significant architecture changes.
 
