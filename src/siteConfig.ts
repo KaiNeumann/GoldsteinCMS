@@ -1,6 +1,10 @@
 ﻿import siteJson from "../site.json";
 
-export type NavigationItem = { label: string; path: string };
+export type NavigationItem = {
+  label: string;
+  path: string;
+  children?: NavigationItem[];
+};
 export type SidebarWidget = "contact" | "bankAccount" | "quickInfo";
 export type FooterColumn = "brand" | "navigation" | "contact";
 export type HomeBlock = "welcome" | "latestPost" | "olderPosts";

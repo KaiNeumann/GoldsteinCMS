@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { enhanceCmsContent } from "./cms-enhance";
+import { enhanceCmsContent, cleanupCmsContent } from "./cms-enhance";
 
 export default function CmsContent({
   html,
@@ -14,6 +14,12 @@ export default function CmsContent({
     if (ref.current) {
       enhanceCmsContent(ref.current);
     }
+    
+    return () => {
+      if (ref.current) {
+        cleanupCmsContent(ref.current);
+      }
+    };
   }, [html]);
 
   return (

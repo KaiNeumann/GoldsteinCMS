@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useContent } from "../context/ContentContext";
-import { site } from "../siteConfig";
+import { site, NavigationItem } from "../siteConfig";
 import ContactWidget from "./widgets/ContactWidget";
 import BankAccountWidget from "./widgets/BankAccountWidget";
 import QuickInfoWidget from "./widgets/QuickInfoWidget";
@@ -9,6 +9,172 @@ import BrandColumn from "./footer/BrandColumn";
 import NavColumn from "./footer/NavColumn";
 import ContactColumn from "./footer/ContactColumn";
 import ThemeToggle from "./ThemeToggle";
+
+function NavLink({ item, scrollToTop }: { item: NavigationItem; scrollToTop: () => void }) {
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const hasChildren = item.children && item.children.length > 0;
+
+  useEffect(() => {
+    if (!hasChildren) return;
+    const el = ref.current;
+    if (!el) return;
+
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    el.addEventListener("keydown", handleKeydown);
+    return () => el.removeEventListener("keydown", handleKeydown);
+  }, [hasChildren]);
+
+  const isActive = location.pathname === item.path;
+
+  if (!hasChildren) {
+    return (
+      <Link
+        to={item.path}
+        onClick={scrollToTop}
+        className={`px-5 py-3 text-sm font-semibold tracking-wide uppercase transition-colors no-underline ${
+          isActive
+            ? "bg-white/20 text-white"
+            : "text-green-100 hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen(!open);
+          }
+        }}
+        className={`px-5 py-3 text-sm font-semibold tracking-wide uppercase transition-colors flex items-center gap-1 ${
+          isActive
+            ? "bg-white/20 text-white"
+            : "text-green-100 hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        {item.label}
+        <svg
+          className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-0.5 min-w-[200px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          {item.children!.map((child) => (
+            <Link
+              key={child.path}
+              to={child.path}
+              onClick={() => { setOpen(false); scrollToTop(); }}
+              className={`block px-4 py-2 text-sm transition-colors no-underline ${
+                location.pathname === child.path
+                  ? "bg--primary/10 text--primary font-semibold"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobileNavLink({ item, scrollToTop, onNavigate }: { item: NavigationItem; scrollToTop: () => void; onNavigate: () => void }) {
+  const location = useLocation();
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = item.children && item.children.length > 0;
+  const isActive = location.pathname === item.path;
+
+  if (!hasChildren) {
+    return (
+      <Link
+        to={item.path}
+        onClick={() => { onNavigate(); scrollToTop(); }}
+        className={`block px-4 py-3 text-sm font-semibold uppercase transition-colors no-underline rounded-lg ${
+          isActive
+            ? "bg-white/20 text-white"
+            : "text-green-100 hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        {item.label}
+      </Link>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center">
+        <Link
+          to={item.path}
+          onClick={() => { onNavigate(); scrollToTop(); }}
+          className={`flex-1 px-4 py-3 text-sm font-semibold uppercase transition-colors no-underline rounded-l-lg ${
+            isActive
+              ? "bg-white/20 text-white"
+              : "text-green-100 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          {item.label}
+        </Link>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className={`px-3 py-3 text-green-100 hover:bg-white/10 transition-colors rounded-r-lg ${
+            expanded ? "bg-white/10" : ""
+          }`}
+          aria-label={expanded ? `${item.label} schließen` : `${item.label} öffnen`}
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="pl-4 space-y-1 mt-1">
+          {item.children!.map((child) => (
+            <Link
+              key={child.path}
+              to={child.path}
+              onClick={() => { onNavigate(); scrollToTop(); }}
+              className={`block px-4 py-2 text-sm transition-colors no-underline rounded-lg ${
+                location.pathname === child.path
+                  ? "bg-white/20 text-white font-semibold"
+                  : "text-green-100/80 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -79,35 +245,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="max-w-6xl mx-auto px-4">
             <div className="hidden md:flex gap-1">
               {site.navigation.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={scrollToTop}
-                  className={`px-5 py-3 text-sm font-semibold tracking-wide uppercase transition-colors no-underline ${
-                    location.pathname === item.path
-                      ? "bg-white/20 text-white"
-                      : "text-green-100 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                </Link>
+                <NavLink key={item.path} item={item} scrollToTop={scrollToTop} />
               ))}
             </div>
             {mobileMenuOpen && (
               <div className="md:hidden py-2 space-y-1">
                 {site.navigation.map((item) => (
-                  <Link
+                  <MobileNavLink
                     key={item.path}
-                    to={item.path}
-                    onClick={() => { setMobileMenuOpen(false); scrollToTop(); }}
-                    className={`block px-4 py-3 text-sm font-semibold uppercase transition-colors no-underline rounded-lg ${
-                      location.pathname === item.path
-                        ? "bg-white/20 text-white"
-                        : "text-green-100 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
+                    item={item}
+                    scrollToTop={scrollToTop}
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
                 ))}
                 <div className="px-4 py-2">
                   <ThemeToggle />

@@ -2,7 +2,14 @@
   "navigation": [
     { "label": "Startseite", "path": "/" },
     { "label": "Über uns", "path": "/ueber-uns" },
-    { "label": "Aktivitäten", "path": "/aktivitaeten" },
+    {
+      "label": "Aktivitäten",
+      "path": "/aktivitaeten",
+      "children": [
+        { "label": "Alle Beiträge", "path": "/aktivitaeten" },
+        { "label": "Wandertage", "path": "/aktivitaeten#wandertage" }
+      ]
+    },
     { "label": "Hüttennutzung", "path": "/huettennutzung" },
     { "label": "Impressum", "path": "/impressum" },
     { "label": "Datenschutz", "path": "/datenschutz" }
