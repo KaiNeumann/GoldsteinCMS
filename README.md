@@ -117,6 +117,7 @@ GoldsteinCMS/
 - `docs/DEPLOY.md` — deployment and environment variables
 - `docs/BACKUP.md` — backup and restore procedures
 - `docs/USER-GUIDE.md` — editor and administrator guide
+- `docs/SHARED-CORE.md` — shared core architecture and onboarding
 - `docs/implementation-plan.md` — migration roadmap
 - `docs/todo/` — design documents for planned features
 

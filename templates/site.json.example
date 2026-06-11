@@ -1,0 +1,28 @@
+{
+  "navigation": [
+    { "label": "Startseite", "path": "/" },
+    { "label": "Über uns", "path": "/ueber-uns" },
+    { "label": "Aktivitäten", "path": "/aktivitaeten" },
+    { "label": "Impressum", "path": "/impressum" },
+    { "label": "Datenschutz", "path": "/datenschutz" }
+  ],
+  "sidebar": ["contact", "quickInfo"],
+  "footer": {
+    "columns": ["brand", "navigation", "contact"],
+    "credit": "Website & CMS: Your Name",
+    "showAdminLink": true
+  },
+  "homeBlocks": ["welcome", "latestPost", "olderPosts"],
+  "hero": {
+    "headline": "Willkommen",
+    "subtitle": "Ihre Überschrift hier",
+    "showTrees": false
+  },
+  "pages": {
+    "/": { "component": "Home", "title": "Startseite" },
+    "/ueber-uns": { "component": "About", "title": "Über uns" },
+    "/aktivitaeten": { "component": "Activities", "title": "Aktivitäten" },
+    "/impressum": { "component": "Impressum", "title": "Impressum" },
+    "/datenschutz": { "component": "Datenschutz", "title": "Datenschutz" }
+  }
+}

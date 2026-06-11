@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # Core submodule updates
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "core-update"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+
+  # GitHub Actions (if used)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "chore"

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["goldstein-core"],
+      "matchUpdateTypes": ["digest"],
+      "labels": ["core-update"],
+      "automerge": false,
+      "commitMessagePrefix": "chore"
+    },
+    {
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "commitMessagePrefix": "chore"
+    }
+  ],
+  "ignoreDeps": [],
+  "schedule": ["before 6am on Monday"]
+}
