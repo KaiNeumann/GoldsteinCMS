@@ -1,15 +1,15 @@
 # GoldsteinCMS — Migration Implementation Plan
 
-**Project:** GoldsteinfreundeWebsite → GoldsteinCMS  
-**Date:** 2026-06-11  
-**Author:** Kai Uwe Neumann  
-**Status:** Ready to Execute  
+**Project:** GoldsteinfreundeWebsite → GoldsteinCMS
+**Date:** 2026-06-11
+**Author:** Kai Uwe Neumann
+**Status:** Phases 1-3 Complete, Phase 4 Pending
 
 ---
 
 ## 1. Executive Summary
 
-This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose German nature association website) into GoldsteinCMS, a flexible, multi-customer content management system. The migration is structured across 4 phases, ordered by dependency and risk, with an estimated total duration of **3-4 weeks** for a developer familiar with the codebase.
+This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose German nature association website) into GoldsteinCMS, a flexible, multi-customer content management system. The migration is structured across 5 phases, ordered by dependency and risk.
 
 ### Guiding Principles
 
@@ -23,10 +23,11 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 
 ## 2. Implementation Phases
 
-### Phase 1: Pluggable Storage Adapters
-**Duration:** 3-4 days  
-**Risk:** Medium (backend changes, no UI impact)  
-**Dependencies:** None  
+### Phase 1: Pluggable Storage Adapters ✅
+**Duration:** 3-4 days
+**Risk:** Medium (backend changes, no UI impact)
+**Dependencies:** None
+**Status:** ✅ Complete (commit `f2866b5`)
 
 #### Goals
 - Extract Gist storage logic into a standalone adapter
@@ -48,22 +49,13 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 | 1.8 | Update `audit.ts` to use adapter | `functions/api/audit.ts` | ~3 |
 | 1.9 | Document KV setup in `DEPLOY.md` | `docs/DEPLOY.md` | ~30 |
 
-#### Verification Checklist
-- [ ] Existing Gist-based publish flow works unchanged
-- [ ] KV-based publish flow works end-to-end
-- [ ] Removing KV binding falls back to Gist (if configured)
-- [ ] Removing both bindings returns 503
-- [ ] Backup rotation works for both adapters (30 snapshots)
-- [ ] Audit log retrieval works for both adapters
-- [ ] Version conflict detection works for both adapters
-- [ ] Playwright smoke tests pass
-
 ---
 
-### Phase 2: Multi-Customer Site Configuration
-**Duration:** 2-3 days  
-**Risk:** Low (structural refactoring, no new features)  
-**Dependencies:** None (parallel with Phase 1)  
+### Phase 2: Multi-Customer Site Configuration ✅
+**Duration:** 2-3 days
+**Risk:** Low (structural refactoring, no new features)
+**Dependencies:** None (parallel with Phase 1)
+**Status:** ✅ Complete (commit `96ace84`)
 
 #### Goals
 - Extract hardcoded sidebar/footer components into reusable widgets
@@ -89,22 +81,13 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 | 2.12 | Modify `Home.tsx` for homeBlocks config | `src/pages/Home.tsx` | ~110 → ~115 |
 | 2.13 | Document onboarding in `DEPLOY.md` | `docs/DEPLOY.md` | ~20 |
 
-#### Verification Checklist
-- [ ] Existing site renders identically before/after (visual comparison)
-- [ ] Navigation items match `site.json` config
-- [ ] Sidebar widgets match `site.json` config
-- [ ] Footer columns match `site.json` config
-- [ ] Home page blocks render in config order
-- [ ] Route generation works from config
-- [ ] Adding a hypothetical new page via config only works
-- [ ] Playwright smoke tests pass
-
 ---
 
-### Phase 3: Theming Support with Dark Mode
-**Duration:** 3-4 days  
-**Risk:** Low (visual changes only, no logic changes)  
-**Dependencies:** None (parallel with Phases 1-2)  
+### Phase 3: Theming Support with Dark Mode ✅
+**Duration:** 3-4 days
+**Risk:** Low (visual changes only, no logic changes)
+**Dependencies:** None (parallel with Phases 1-2)
+**Status:** ✅ Complete (commit `f51b793`)
 
 #### Goals
 - Define design tokens as CSS Custom Properties via Tailwind 4 `@theme`
@@ -121,45 +104,15 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 | 3.3 | Create `ThemeToggle` component | `src/components/ThemeToggle.tsx` | ~50 |
 | 3.4 | Add initial theme application in `App.tsx` | `src/App.tsx` | ~10 |
 | 3.5 | Add toggle to `Layout.tsx` header | `src/components/Layout.tsx` | ~15 |
-| 3.6 | Migrate `Datenschutz.tsx` colors | `src/pages/Datenschutz.tsx` | 2 |
-| 3.7 | Migrate `Impressum.tsx` colors | `src/pages/Impressum.tsx` | 2 |
-| 3.8 | Migrate `ContentContext.tsx` colors | `src/context/ContentContext.tsx` | 1 |
-| 3.9 | Migrate `Huettennutzung.tsx` colors | `src/pages/Huettennutzung.tsx` | 4 |
-| 3.10 | Migrate `Activities.tsx` colors | `src/pages/Activities.tsx` | 5 |
-| 3.11 | Migrate `About.tsx` colors | `src/pages/About.tsx` | 6 |
-| 3.12 | Migrate `Home.tsx` colors | `src/pages/Home.tsx` | 10 |
-| 3.13 | Migrate `Layout.tsx` colors | `src/components/Layout.tsx` | 25 |
-| 3.14 | Migrate `Admin.tsx` colors | `src/pages/Admin.tsx` | 55 |
-
-#### Color Mapping Reference
-
-| Hardcoded Value | Token | Tailwind Class |
-|-----------------|-------|----------------|
-| `#2d6a1e` | `--color-primary` | `bg-primary`, `text-primary` |
-| `#1a4d0f` | `--color-primary-dark` | `bg-primary-dark`, `text-primary-dark` |
-| `#4a8c34` | `--color-primary-light` | `bg-primary-light`, `text-primary-light` |
-| `#ffffff` (cards) | `--color-surface-card` | `bg-surface-card` |
-| `#f9fafb` | `--color-surface-alt` | `bg-surface-alt` |
-| `#333` / `#1f2937` | `--color-text` | `text-text` |
-| `#6b7280` | `--color-text-muted` | `text-text-muted` |
-| `#e5e7eb` | `--color-border` | `border-border` |
-
-#### Verification Checklist
-- [ ] Light mode matches current visual appearance exactly
-- [ ] Dark mode renders correctly on all pages
-- [ ] Theme toggle persists across page reloads
-- [ ] OS preference is respected in auto mode
-- [ ] No flash of unstyled content on initial load
-- [ ] Scrollbar uses theme colors
-- [ ] Admin panel colors are consistent in both modes
-- [ ] Playwright smoke tests pass
+| 3.6-3.14 | Migrate colors across 9 files | `src/pages/*.tsx`, `src/context/*.tsx` | ~99 |
 
 ---
 
-### Phase 4: Semantic CMS Components
-**Duration:** 7-8 days  
-**Risk:** Medium-High (new interactive features, most complex phase)  
-**Dependencies:** Phases 1-3 complete  
+### Phase 4: Semantic CMS Components ⬜
+**Duration:** 7-8 days
+**Risk:** Medium-High (new interactive features, most complex phase)
+**Dependencies:** Phases 1-3 complete
+**Status:** ⬜ Pending
 
 #### Goals
 - Add DOM enhancement module for CMS content elements
@@ -235,6 +188,41 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 
 ---
 
+### Phase 5: Shared Core Architecture ⬜
+**Duration:** 2-3 days
+**Risk:** Medium (structural refactoring, deployment changes)
+**Dependencies:** Phases 1-3 complete (Phase 4 optional)
+**Status:** ⬜ Pending (design documented in `docs/todo/shared-core-design.md`)
+
+#### Goals
+- Extract shared code into a separate `goldstein-core` repository
+- Establish git submodule + version tagging pattern
+- Create customer onboarding templates
+- Define core/custom boundary
+
+#### Deliverables
+
+| # | Task | File(s) | Est. Lines |
+|---|------|---------|------------|
+| 5.1 | Create `goldstein-core` repo with shared code | New repo | ~500 |
+| 5.2 | Create `templates/site.json.example` | `templates/site.json.example` | ~40 |
+| 5.3 | Create `templates/package.json.example` | `templates/package.json.example` | ~30 |
+| 5.4 | Document core/custom boundary | `docs/todo/shared-core-design.md` | Done |
+| 5.5 | Create customer onboarding script | `scripts/onboard.sh` | ~50 |
+| 5.6 | Test submodule update workflow | Manual | — |
+| 5.7 | Migrate existing customer (if any) | Per customer | ~30 |
+
+#### Verification Checklist
+- [ ] Core repo contains all shared components, context, functions, types
+- [ ] Customer repo can import from core submodule
+- [ ] Submodule pinned to version tag works correctly
+- [ ] Customer-specific pages work alongside core
+- [ ] Theme overrides in customer repo override core defaults
+- [ ] Update workflow (fetch → checkout tag → commit) works
+- [ ] Build succeeds after submodule update
+
+---
+
 ## 3. Cross-Phase Dependencies
 
 ```
@@ -243,11 +231,14 @@ Phase 1 (Storage)  ────────────────────�
 Phase 2 (Site Config) ────────────────────────────────┼──→ Phase 4 (CMS Components)
                                                        │
 Phase 3 (Theming) ────────────────────────────────────┘
+                                                       │
+                                                       ▼
+                                               Phase 5 (Shared Core)
 ```
 
-- **Phases 1-3** can be developed in parallel (independent concerns)
-- **Phase 4** depends on all three being complete (uses storage for content, config for structure, theming for visual consistency)
-- Within Phase 4, sub-phases have linear dependencies (foundation → features → builder)
+- **Phases 1-3** ✅ Complete (developed in parallel)
+- **Phase 4** ⬜ Pending (depends on Phases 1-3)
+- **Phase 5** ⬜ Pending (depends on Phases 1-3; Phase 4 optional)
 
 ---
 
@@ -262,6 +253,7 @@ Phase 3 (Theming) ────────────────────�
 | Component Builder is too complex | Medium | Medium | Phase delivery (simple → advanced); consider splitting into 2 PRs |
 | KV free tier limits are hit | Low | Low | Monitor via Cloudflare dashboard; upgrade path is straightforward |
 | Single-file bundle size grows too large | Low | Medium | Monitor bundle size; keep total under 500KB compressed |
+| Shared core update breaks all customers | Medium | High | Pin to version tags; update one customer at a time; no auto-deploy |
 
 ---
 
@@ -275,12 +267,13 @@ Phase 3 (Theming) ────────────────────�
 
 | Test | Phase | Purpose |
 |------|-------|---------|
-| Storage adapter fallback | 1 | Verify 503 when no backend configured |
-| Site config rendering | 2 | Verify nav, sidebar, footer match config |
-| Theme toggle persistence | 3 | Verify localStorage and visual change |
+| Storage adapter fallback | 1 ✅ | Verify 503 when no backend configured |
+| Site config rendering | 2 ✅ | Verify nav, sidebar, footer match config |
+| Theme toggle persistence | 3 ✅ | Verify localStorage and visual change |
 | Lightbox interaction | 4 | Click image → overlay opens |
 | Slider navigation | 4 | Arrow buttons change slides |
 | Accordion behavior | 4 | Only one section open at a time |
+| Submodule update | 5 | Verify core update works |
 
 ### 5.2 Manual Testing Checklist
 
@@ -306,23 +299,26 @@ For Phase 3 (Theming), capture screenshots:
 
 Each phase should be committed as a single, well-described commit (or small PR):
 
-| Phase | Commit Message | Files Changed |
-|-------|----------------|---------------|
-| 1 | `feat: add pluggable storage adapters (Gist + KV)` | ~8 files |
-| 2 | `feat: add multi-customer site configuration` | ~12 files |
-| 3 | `feat: add theming support with dark mode` | ~12 files |
-| 4.1-4.5 | `feat: add semantic CMS components with DOM enhancement` | ~6 files |
-| 4.6 | `feat: add Component Builder modal for admin` | ~3 files |
+| Phase | Commit Message | Files Changed | Status |
+|-------|----------------|---------------|--------|
+| 1 | `feat: add pluggable storage adapters (Gist + KV)` | ~8 files | ✅ `f2866b5` |
+| 2 | `feat: add multi-customer site configuration` | ~12 files | ✅ `96ace84` |
+| 3 | `feat: add theming support with dark mode` | ~12 files | ✅ `f51b793` |
+| 4.1-4.5 | `feat: add semantic CMS components with DOM enhancement` | ~6 files | ⬜ Pending |
+| 4.6 | `feat: add Component Builder modal for admin` | ~3 files | ⬜ Pending |
+| 5 | `refactor: extract shared core submodule pattern` | ~5 files | ⬜ Pending |
 
 ---
 
-## 7. New Customer Onboarding (Post-Migration)
+## 7. New Customer Onboarding
 
-After all phases are complete, deploying for a new customer requires:
+### Current Approach (Fork-Based)
+
+Deploying for a new customer requires:
 
 1. **Fork/copy the GoldsteinCMS repo**
 2. **Edit `site.json`** — navigation, sidebar, footer, hero, pages
-3. **Adjust theming** — edit CSS custom properties in `index.css` (or override via `site.json` extension)
+3. **Adjust theming** — edit CSS custom properties in `index.css`
 4. **Adjust content** — via admin panel or by editing `content.json` in storage
 5. **Add custom pages** (if needed) — create React component, add to `pageRegistry`
 6. **Configure storage** — set up Gist or KV backend
@@ -330,72 +326,96 @@ After all phases are complete, deploying for a new customer requires:
 
 Steps 2-4 require **zero React code changes** for standard sites.
 
+### Future Approach (Shared Core, Phase 5)
+
+After Phase 5, customers use a git submodule pinned to a version tag:
+
+1. **Create customer repo**
+2. **Add core submodule:** `git submodule add <core-repo> core`
+3. **Pin to version:** `cd core && git checkout v1.2.0 && cd ..`
+4. **Edit `site.json`** — copy template, customize
+5. **Override theme** — edit `src/index.css` in customer repo
+6. **Add custom pages** — create in `src/pages/`, import from core
+7. **Configure storage and deploy**
+
+See `docs/todo/shared-core-design.md` for the full shared core architecture.
+
 ---
 
 ## 8. Future Extensions (Not in Scope)
 
 These are enabled by the migration but not part of the initial implementation:
 
-| Extension | Depends On | Complexity |
-|-----------|------------|------------|
-| Turso/SQLite storage adapter | Phase 1 | Low |
-| Supabase storage adapter | Phase 1 | Low |
-| Content schema extensions per customer | Phase 2 | Medium |
-| i18n for admin UI | Phase 3 | Medium |
-| Seasonal themes | Phase 3 | Low |
-| High-contrast accessibility mode | Phase 3 | Low |
-| Customer-specific component library | Phase 4 | Medium |
-| Block registry system | Phase 2 (Option B) | High |
+| Extension | Depends On | Complexity | Status |
+|-----------|------------|------------|--------|
+| Turso/SQLite storage adapter | Phase 1 | Low | ⬜ |
+| Supabase storage adapter | Phase 1 | Low | ⬜ |
+| Content schema extensions per customer | Phase 2 | Medium | ⬜ |
+| i18n for admin UI | Phase 3 | Medium | ⬜ |
+| Seasonal themes | Phase 3 | Low | ⬜ |
+| High-contrast accessibility mode | Phase 3 | Low | ⬜ |
+| Customer-specific component library | Phase 4 | Medium | ⬜ |
+| Block registry system | Phase 2 (Option B) | High | ⬜ |
+| Automated update PRs (Dependabot-style) | Phase 5 | Low | ⬜ |
+| Update validation CI | Phase 5 | Medium | ⬜ |
 
 ---
 
-## 9. File Structure (Post-Migration)
+## 9. File Structure (Current State)
 
 ```
 GoldsteinCMS/
-  site.json                          ← NEW: Site structure config
+  LICENSE                              ← AGPL-3.0
+  README.md                            ← Project overview
+  site.json                            ← Site structure config
   src/
-    siteConfig.ts                    ← NEW: TypeScript types + import
-    pageRegistry.ts                  ← NEW: Component-to-route mapping
+    siteConfig.ts                      ← TypeScript types + import
+    pageRegistry.ts                    ← Component-to-route mapping
     components/
-      CmsContent.tsx                 ← NEW: CMS content wrapper
-      cms-enhance.ts                 ← NEW: DOM enhancement module
-      ComponentBuilder.tsx           ← NEW: Admin component builder
-      ThemeToggle.tsx                ← NEW: Theme toggle button
-      Layout.tsx                     ← MODIFIED: Config-driven rendering
+      Layout.tsx                       ← Config-driven layout
+      ThemeToggle.tsx                  ← Theme toggle button
       widgets/
-        ContactWidget.tsx            ← NEW: Extracted from Layout
-        BankAccountWidget.tsx        ← NEW: Extracted from Layout
-        QuickInfoWidget.tsx          ← NEW: Extracted from Layout
+        ContactWidget.tsx              ← Sidebar widget
+        BankAccountWidget.tsx          ← Sidebar widget
+        QuickInfoWidget.tsx            ← Sidebar widget
       footer/
-        BrandColumn.tsx              ← NEW: Extracted from Layout
-        NavColumn.tsx                ← NEW: Extracted from Layout
-        ContactColumn.tsx            ← NEW: Extracted from Layout
-    index.css                        ← MODIFIED: Theme tokens + dark mode
+        BrandColumn.tsx                ← Footer column
+        NavColumn.tsx                  ← Footer column
+        ContactColumn.tsx              ← Footer column
+    index.css                          ← Theme tokens + dark mode
   functions/
     api/
       storage/
-        types.ts                     ← NEW: ContentStorage interface
-        gist.ts                      ← NEW: Gist adapter
-        kv.ts                        ← NEW: KV adapter
-      _shared.ts                     ← MODIFIED: Adapter selection
-      content.ts                     ← MODIFIED: Use adapter
-      publish.ts                     ← MODIFIED: Use adapter
-      audit.ts                       ← MODIFIED: Use adapter
+        types.ts                       ← ContentStorage interface
+        gist.ts                        ← Gist adapter
+        kv.ts                          ← KV adapter
+      _shared.ts                       ← Adapter selection
+  docs/
+    DEPLOY.md                          ← Deployment procedures
+    BACKUP.md                          ← Backup and restore
+    USER-GUIDE.md                      ← Editor and admin guide
+    implementation-plan.md             ← This file
+    todo/
+      storage-adapter-design.md        ← Chapter 1
+      theming-design.md                ← Chapter 2
+      site-configuration-design.md     ← Chapter 3
+      cms-components-design.md         ← Chapter 4
+      shared-core-design.md            ← Chapter 5
 ```
 
 ---
 
 ## 10. Timeline Summary
 
-| Week | Phase | Focus | Deliverable |
-|------|-------|-------|-------------|
-| **Week 1** | Phase 1 + 2 | Storage + Site Config | Pluggable backends + config-driven layout |
-| **Week 2** | Phase 3 | Theming | Dark mode + token-based colors |
-| **Week 3** | Phase 4.1-4.5 | CMS Components | Lightbox, gallery, slider, collapsible, etc. |
-| **Week 4** | Phase 4.6 + Testing | Component Builder + Polish | Complete admin builder + full test coverage |
+| Week | Phase | Focus | Deliverable | Status |
+|------|-------|-------|-------------|--------|
+| **Week 1** | Phase 1 + 2 | Storage + Site Config | Pluggable backends + config-driven layout | ✅ Done |
+| **Week 2** | Phase 3 | Theming | Dark mode + token-based colors | ✅ Done |
+| **Week 3** | Phase 4.1-4.5 | CMS Components | Lightbox, gallery, slider, collapsible, etc. | ⬜ Next |
+| **Week 4** | Phase 4.6 + Testing | Component Builder + Polish | Complete admin builder + full test coverage | ⬜ Pending |
+| **Week 5** | Phase 5 | Shared Core | Extract core, create templates, test workflow | ⬜ Future |
 
-**Total: 4 weeks** (adjustable based on available time and complexity tolerance)
+**Total: 5 weeks** (adjustable based on available time and complexity tolerance)
 
 ---
 
