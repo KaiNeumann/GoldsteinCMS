@@ -3,10 +3,11 @@
     { "label": "Startseite", "path": "/" },
     { "label": "Über uns", "path": "/ueber-uns" },
     { "label": "Aktivitäten", "path": "/aktivitaeten" },
+    { "label": "Hüttennutzung", "path": "/huettennutzung" },
     { "label": "Impressum", "path": "/impressum" },
     { "label": "Datenschutz", "path": "/datenschutz" }
   ],
-  "sidebar": ["contact", "quickInfo"],
+  "sidebar": ["contact", "bankAccount", "quickInfo"],
   "footer": {
     "columns": ["brand", "navigation", "contact"],
     "credit": "Website & CMS: Your Name",
@@ -22,6 +23,7 @@
     "/": { "component": "Home", "title": "Startseite" },
     "/ueber-uns": { "component": "About", "title": "Über uns" },
     "/aktivitaeten": { "component": "Activities", "title": "Aktivitäten" },
+    "/huettennutzung": { "component": "Huettennutzung", "title": "Hüttennutzung" },
     "/impressum": { "component": "Impressum", "title": "Impressum" },
     "/datenschutz": { "component": "Datenschutz", "title": "Datenschutz" }
   }

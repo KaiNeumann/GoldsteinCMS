@@ -4,7 +4,9 @@ This document describes how to use the shared core pattern for deploying Goldste
 
 ## Overview
 
-The shared core pattern extracts reusable code into a separate repository (`goldstein-core`), while each customer instance maintains its own repository with customizations. This provides:
+**GoldsteinCMS IS the core repository.** It contains all shared components, context, API functions, storage adapters, theming, and types. Customer instances are separate repositories that use this repo as a git submodule.
+
+The shared core pattern provides:
 
 - **Code reuse** — shared components, context, API functions, and utilities
 - **Customer independence** — each customer owns their repository
@@ -14,24 +16,30 @@ The shared core pattern extracts reusable code into a separate repository (`gold
 ## Architecture
 
 ```text
-goldstein-core/           ← Shared repository
+GoldsteinCMS/               ← THIS REPOSITORY (core)
   src/
-    components/           ← Reusable UI components
-    context/              ← React context providers
-    content/              ← Content schema and defaults
-    functions/            ← Cloudflare Pages Functions
-  templates/              ← Customer onboarding templates
-  docs/                   ← Documentation
+    components/             ← Reusable UI components
+    context/                ← React context providers
+    content/                ← Content schema and defaults
+    siteConfig.ts           ← TypeScript types for site.json
+    pageRegistry.ts         ← Route-to-component mapping
+  functions/
+    api/
+      storage/              ← Storage adapters (Gist, KV)
+      _shared.ts            ← Auth, sanitization
+      content.ts, publish.ts, auth.ts, session.ts, audit.ts, logout.ts
+  templates/                ← Customer onboarding templates
+  docs/                     ← Documentation
 
-customer-repo/            ← Customer instance
-  core/                   ← Git submodule (pinned to core version)
-  site.json               ← Site structure config
+customer-repo/              ← Customer instance (separate repository)
+  core/                     ← Git submodule (pinned to GoldsteinCMS version)
+  site.json                 ← Site structure config
   src/
-    index.css             ← Theme overrides
-    pages/                ← Customer-specific pages
-    App.tsx               ← Entry point (imports from core)
+    index.css               ← Theme overrides
+    pages/                  ← Customer-specific pages
+    App.tsx                 ← Entry point (imports from core)
   public/
-    images/               ← Customer-specific images
+    images/                 ← Customer-specific images
 ```
 
 ## Core/Custom Boundary
@@ -75,11 +83,11 @@ customer-repo/            ← Customer instance
 
 ```bash
 # Clone the onboarding script
-git clone https://github.com/KaiNeumann/goldstein-core.git
-cd goldstein-core
+git clone https://github.com/KaiNeumann/GoldsteinCMS.git
+cd GoldsteinCMS
 
 # Run the onboarding script
-./scripts/onboard.sh customer-name https://github.com/KaiNeumann/goldstein-core.git v1.2.0
+./scripts/onboard.sh customer-name https://github.com/KaiNeumann/GoldsteinCMS.git main
 ```
 
 ### Manual Setup
@@ -92,8 +100,8 @@ mkdir customer-name && cd customer-name
 git init && git checkout -b main
 
 # 3. Add core submodule
-git submodule add https://github.com/KaiNeumann/goldstein-core.git core
-cd core && git checkout v1.2.0 && cd ..
+git submodule add https://github.com/KaiNeumann/GoldsteinCMS.git core
+cd core && git checkout main && cd ..
 
 # 4. Create site.json (copy from template)
 cp core/templates/site.json.example site.json
@@ -110,8 +118,8 @@ npm install
 ### Security Fix (All Customers)
 
 ```bash
-# 1. Fix in core repo
-cd goldstein-core
+# 1. Fix in this repo (GoldsteinCMS)
+cd GoldsteinCMS
 git checkout -b fix/xss-sanitization
 # ... make fix ...
 git commit -m "fix: prevent XSS via img onerror"
@@ -121,8 +129,8 @@ cd ../customer-a
 cd core && git fetch && git checkout fix/xss-sanitization && cd ..
 npm run build
 
-# 3. Merge and tag in core
-cd ../goldstein-core
+# 3. Merge and tag
+cd ../GoldsteinCMS
 git checkout main
 git merge fix/xss-sanitization
 git tag v1.2.1
@@ -142,7 +150,7 @@ done
 
 ```bash
 # 1. Release new version
-cd goldstein-core
+cd GoldsteinCMS
 git tag v1.3.0
 git push origin main --tags
 
@@ -198,10 +206,10 @@ When a customer wants the code in their own GitHub organization:
 
 1. Customer creates their own repo
 2. You transfer or they clone
-3. Submodule still points to your core repo
-4. If core is private, customer needs read access:
+3. Submodule still points to this repo (GoldsteinCMS)
+4. If this repo is private, customer needs read access:
    ```bash
-   gh repo add-collaborator KaiNeumann/goldstein-core customer-dev --permission pull
+   gh repo add-collaborator KaiNeumann/GoldsteinCMS customer-dev --permission pull
    ```
 
 ### License Implications
@@ -218,11 +226,11 @@ When a customer wants the code in their own GitHub organization:
 For existing forked customers, migrate incrementally:
 
 ```bash
-# 1. Extract shared code into goldstein-core repo
+# 1. Extract shared code into GoldsteinCMS repo (already done)
 # 2. In each customer fork, replace shared files with submodule
 cd customer-a
 git rm -r src/components src/context functions/api src/siteConfig.ts
-git submodule add https://github.com/KaiNeumann/goldstein-core.git core
+git submodule add https://github.com/KaiNeumann/GoldsteinCMS.git core
 # Update imports to reference core/
 git add .
 git commit -m "refactor: migrate to shared core submodule"
@@ -242,3 +250,4 @@ git commit -m "refactor: migrate to shared core submodule"
 - `docs/todo/shared-core-design.md` — Full design document
 - `docs/todo/cms-components-design.md` — CMS component architecture
 - `docs/implementation-plan.md` — Migration roadmap
+- `README.md` — Project overview and quick start

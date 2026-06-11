@@ -16,7 +16,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Default values
-CORE_REPO="${2:-https://github.com/KaiNeumann/goldstein-core.git}"
+CORE_REPO="${2:-https://github.com/KaiNeumann/GoldsteinCMS.git}"
 CORE_VERSION="${3:-main}"
 CUSTOMER_NAME="${1}"
 
