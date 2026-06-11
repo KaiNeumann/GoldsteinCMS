@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { useContent } from "../context/ContentContext";
+import CmsContent from "../components/CmsContent";
 
 export default function About() {
   const { content } = useContent();
@@ -16,15 +17,15 @@ export default function About() {
       </div>
 
       <div className="bg-surface-card rounded-b-xl shadow-md p-6 md:p-8">
-        <div
-          className="prose prose-green max-w-none text-text leading-relaxed mb-8
+        <CmsContent
+          html={cfg.pageContent.aboutMainHtml}
+          className="max-w-none text-text leading-relaxed mb-8
             [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-text [&_h2]:mt-6 [&_h2]:mb-3
             [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-6 [&_h3]:mb-3
             [&_p]:mb-4
             [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-2
             [&_li]:text-text
             [&_a]:text--primary [&_a]:underline"
-          dangerouslySetInnerHTML={{ __html: cfg.pageContent.aboutMainHtml }}
         />
 
         <div className="mb-8 rounded-lg overflow-hidden border border-border h-52 md:h-72 relative group">

@@ -13,6 +13,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useContent } from "../context/ContentContext";
 import { defaultContent, formatDate } from "../content/defaultContent";
 import type { Post, SiteConfig, SiteImage } from "../content/defaultContent";
+import CmsContent from "../components/CmsContent";
 
 // ─── Main Admin Component ────────────────────────────────
 
@@ -322,15 +323,15 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
           </div>
 
           {showPreview ? (
-            <div
-              className="prose prose-green max-w-none text-text leading-relaxed border border-border rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto
-                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-4 [&_h3]:mb-2
-                [&_p]:mb-3
-                [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
-                [&_a]:text--primary [&_a]:underline
-                [&_strong]:text-text"
-              dangerouslySetInnerHTML={{ __html: form.content || "<p><em>Kein Inhalt</em></p>" }}
-            />
+              <CmsContent
+                html={form.content || "<p><em>Kein Inhalt</em></p>"}
+                className="max-w-none text-text leading-relaxed border border-border rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto
+                  [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-4 [&_h3]:mb-2
+                  [&_p]:mb-3
+                  [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
+                  [&_a]:text--primary [&_a]:underline
+                  [&_strong]:text-text"
+              />
           ) : (
             <>
               {/* Quick formatting toolbar */}
@@ -1399,13 +1400,13 @@ function HtmlField({ label, value, onChange, rows = 10 }: {
       )}
 
       {showPreview ? (
-        <div
-          className="prose prose-green max-w-none text-text leading-relaxed border border-border rounded-lg p-4 min-h-40 max-h-[420px] overflow-y-auto bg-white
+        <CmsContent
+          html={value || "<p><em>Kein Inhalt</em></p>"}
+          className="max-w-none text-text leading-relaxed border border-border rounded-lg p-4 min-h-40 max-h-[420px] overflow-y-auto bg-surface-card
             [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:text-text [&_h1]:mt-4 [&_h1]:mb-3
             [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-text [&_h2]:mt-4 [&_h2]:mb-3
             [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-4 [&_h3]:mb-2
             [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text--primary [&_a]:underline"
-          dangerouslySetInnerHTML={{ __html: value || "<p><em>Kein Inhalt</em></p>" }}
         />
       ) : (
         <textarea

@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { useContent } from "../context/ContentContext";
 import { formatDate } from "../content/defaultContent";
+import CmsContent from "../components/CmsContent";
 
 const POSTS_PER_PAGE = 10;
 const ALWAYS_SHOW_PAGINATION = true;
@@ -73,14 +74,14 @@ export default function Activities() {
               <h2 className="text-xl md:text-2xl font-bold text-text mb-4" style={{ fontFamily: "var(--font-heading)" }}>
                 {post.title}
               </h2>
-              <div
-                className="prose prose-green max-w-none text-text leading-relaxed
+              <CmsContent
+                html={post.content}
+                className="max-w-none text-text leading-relaxed
                   [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-6 [&_h3]:mb-3
                   [&_p]:mb-4
                   [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1
                   [&_a]:text--primary [&_a]:underline [&_a]:hover:text--primary-dark
                   [&_strong]:text-text"
-                dangerouslySetInnerHTML={{ __html: post.content }}
               />
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

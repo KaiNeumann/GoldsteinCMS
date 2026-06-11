@@ -2,6 +2,7 @@
 import { formatDate } from "../content/defaultContent";
 import { Link } from "react-router-dom";
 import { site } from "../siteConfig";
+import CmsContent from "../components/CmsContent";
 
 export default function Home() {
   const { content } = useContent();
@@ -16,13 +17,13 @@ export default function Home() {
           </svg>
         </div>
         <div>
-          <div
-            className="prose prose-green max-w-none text-sm text-text leading-relaxed
+          <CmsContent
+            html={content.siteConfig.pageContent.homeWelcomeHtml}
+            className="prose-green max-w-none text-sm text-text leading-relaxed
               [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mb-1
               [&_p]:mb-3 [&_p:last-child]:mb-0
               [&_a]:text--primary [&_a]:underline [&_a]:hover:text--primary-dark
               [&_strong]:text-text"
-            dangerouslySetInnerHTML={{ __html: content.siteConfig.pageContent.homeWelcomeHtml }}
           />
           <Link
             to="/ueber-uns"
@@ -64,14 +65,14 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-bold text-text mb-4" style={{ fontFamily: "var(--font-heading)" }}>
             {latestPost.title}
           </h2>
-          <div
-            className="prose prose-green max-w-none text-text leading-relaxed
+          <CmsContent
+            html={latestPost.content}
+            className="prose-green max-w-none text-text leading-relaxed
               [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-6 [&_h3]:mb-3
               [&_p]:mb-4
               [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1
               [&_a]:text--primary [&_a]:underline [&_a]:hover:text--primary-dark
               [&_strong]:text-text"
-            dangerouslySetInnerHTML={{ __html: latestPost.content }}
           />
         </div>
       </article>

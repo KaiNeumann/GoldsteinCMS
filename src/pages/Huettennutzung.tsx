@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { useContent } from "../context/ContentContext";
+import CmsContent from "../components/CmsContent";
 
 export default function Huettennutzung() {
   const { content } = useContent();
@@ -16,14 +17,14 @@ export default function Huettennutzung() {
       </div>
 
       <div className="bg-surface-card rounded-b-xl shadow-md p-6 md:p-8 text-text leading-relaxed space-y-6">
-        <div
-          className="prose prose-green max-w-none text-text leading-relaxed
+        <CmsContent
+          html={cfg.pageContent.huettennutzungIntroHtml}
+          className="max-w-none text-text leading-relaxed
             [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-text [&_h2]:mt-6 [&_h2]:mb-3
             [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-6 [&_h3]:mb-3
             [&_p]:mb-4
             [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-2
             [&_a]:text--primary [&_a]:underline"
-          dangerouslySetInnerHTML={{ __html: cfg.pageContent.huettennutzungIntroHtml }}
         />
 
         <div className="rounded-lg overflow-hidden border border-border">

@@ -1,4 +1,5 @@
 ﻿import { useContent } from "../context/ContentContext";
+import CmsContent from "../components/CmsContent";
 
 export default function Datenschutz() {
   const { content } = useContent();
@@ -16,14 +17,14 @@ export default function Datenschutz() {
         </p>
       </div>
 
-      <div
-        className="bg-surface-card rounded-b-xl shadow-md p-6 md:p-8 prose prose-green max-w-none text-text leading-relaxed
+      <CmsContent
+        html={cfg.pageContent.datenschutzHtml}
+        className="bg-surface-card rounded-b-xl shadow-md p-6 md:p-8 max-w-none text-text leading-relaxed
           [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-text [&_h2]:mt-6 [&_h2]:mb-3
           [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-text [&_h3]:mt-5 [&_h3]:mb-2
           [&_p]:mb-4
           [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
           [&_a]:text--primary [&_a]:underline"
-        dangerouslySetInnerHTML={{ __html: cfg.pageContent.datenschutzHtml }}
       />
     </div>
   );
