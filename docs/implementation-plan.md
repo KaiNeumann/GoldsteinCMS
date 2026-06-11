@@ -108,11 +108,11 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 
 ---
 
-### Phase 4: Semantic CMS Components ⬜
+### Phase 4: Semantic CMS Components ✅
 **Duration:** 7-8 days
 **Risk:** Medium-High (new interactive features, most complex phase)
 **Dependencies:** Phases 1-3 complete
-**Status:** ⬜ Pending
+**Status:** ✅ Complete (Phases 4.1-4.5 merged; Phase 4.6 pending)
 
 #### Goals
 - Add DOM enhancement module for CMS content elements
@@ -304,7 +304,7 @@ Each phase should be committed as a single, well-described commit (or small PR):
 | 1 | `feat: add pluggable storage adapters (Gist + KV)` | ~8 files | ✅ `f2866b5` |
 | 2 | `feat: add multi-customer site configuration` | ~12 files | ✅ `96ace84` |
 | 3 | `feat: add theming support with dark mode` | ~12 files | ✅ `f51b793` |
-| 4.1-4.5 | `feat: add semantic CMS components with DOM enhancement` | ~6 files | ⬜ Pending |
+| 4.1-4.5 | `feat: add semantic CMS components with DOM enhancement` | ~6 files | ✅ Complete |
 | 4.6 | `feat: add Component Builder modal for admin` | ~3 files | ⬜ Pending |
 | 5 | `refactor: extract shared core submodule pattern` | ~5 files | ⬜ Pending |
 
