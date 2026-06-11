@@ -14,7 +14,7 @@ export default function CmsContent({
     if (ref.current) {
       enhanceCmsContent(ref.current);
     }
-    
+
     return () => {
       if (ref.current) {
         cleanupCmsContent(ref.current);

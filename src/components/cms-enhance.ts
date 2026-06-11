@@ -6,10 +6,9 @@
  */
 
 type Enhancer = (root: HTMLElement) => void;
-type CleanupFn = () => void;
 
 const enhancers: Enhancer[] = [];
-const cleanupFns: CleanupFn[] = [];
+const cleanupCallbacks: Map<HTMLElement, (() => void)[]> = new Map();
 
 export function registerEnhancer(enhancer: Enhancer) {
   enhancers.push(enhancer);
@@ -21,15 +20,19 @@ export function enhanceCmsContent(root: HTMLElement) {
   }
 }
 
-export function cleanupCmsContent() {
-  for (const fn of cleanupFns) {
-    fn();
+export function cleanupCmsContent(root: HTMLElement) {
+  const callbacks = cleanupCallbacks.get(root);
+  if (callbacks) {
+    callbacks.forEach((callback) => callback());
+    cleanupCallbacks.delete(root);
   }
-  cleanupFns.length = 0;
 }
 
-function addCleanup(fn: CleanupFn) {
-  cleanupFns.push(fn);
+function addCleanupCallback(root: HTMLElement, callback: () => void) {
+  if (!cleanupCallbacks.has(root)) {
+    cleanupCallbacks.set(root, []);
+  }
+  cleanupCallbacks.get(root)!.push(callback);
 }
 
 // Lightbox enhancer
@@ -50,13 +53,23 @@ function enhanceLightbox(root: HTMLElement) {
     }
   });
 
+  const clickHandlers: { figure: HTMLElement; handler: () => void }[] = [];
   figures.forEach((figure, index) => {
     const img = figure.querySelector("img");
     if (!img) return;
 
     (figure as HTMLElement).style.cursor = "zoom-in";
-    figure.addEventListener("click", () => {
+    const handler = () => {
       openLightbox(images, index);
+    };
+    figure.addEventListener("click", handler);
+    clickHandlers.push({ figure: figure as HTMLElement, handler });
+  });
+
+  addCleanupCallback(root, () => {
+    clickHandlers.forEach(({ figure, handler }) => {
+      figure.removeEventListener("click", handler);
+      figure.style.cursor = "";
     });
   });
 }
@@ -66,16 +79,17 @@ function openLightbox(
   startIndex: number
 ) {
   let currentIndex = startIndex;
+  let isAnimating = false;
 
   const overlay = document.createElement("div");
   overlay.className =
-    "fixed inset-0 z-50 bg-black/90 flex items-center justify-center";
+    "fixed inset-0 z-50 bg-black/90 flex items-center justify-center opacity-0 transition-opacity duration-300";
 
   const content = document.createElement("div");
   content.className = "relative max-w-4xl max-h-[90vh] mx-4";
 
   const img = document.createElement("img");
-  img.className = "max-h-[80vh] mx-auto rounded-lg object-contain";
+  img.className = "max-h-[80vh] mx-auto rounded-lg object-contain transition-opacity duration-200";
 
   const caption = document.createElement("div");
   caption.className = "text-white text-center mt-4 text-sm opacity-80";
@@ -101,30 +115,89 @@ function openLightbox(
   const counter = document.createElement("div");
   counter.className = "absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm";
 
+  // Touch swipe support
+  let touchStartX = 0;
+  let touchEndX = 0;
+  const minSwipeDistance = 50;
+
   function updateImage() {
     const item = images[currentIndex];
-    img.src = item.src;
-    img.alt = item.alt;
-    caption.textContent = item.caption;
-    counter.textContent = `${currentIndex + 1} / ${images.length}`;
-    prevBtn.style.display = images.length > 1 ? "flex" : "none";
-    nextBtn.style.display = images.length > 1 ? "flex" : "none";
+    img.style.opacity = "0";
+
+    setTimeout(() => {
+      img.src = item.src;
+      img.alt = item.alt;
+      caption.textContent = item.caption;
+      counter.textContent = `${currentIndex + 1} / ${images.length}`;
+      prevBtn.style.display = images.length > 1 ? "flex" : "none";
+      nextBtn.style.display = images.length > 1 ? "flex" : "none";
+      img.style.opacity = "1";
+    }, 200);
+  }
+
+  function preloadAdjacentImages() {
+    if (currentIndex > 0) {
+      const prevImg = new Image();
+      prevImg.src = images[currentIndex - 1].src;
+    }
+    if (currentIndex < images.length - 1) {
+      const nextImg = new Image();
+      nextImg.src = images[currentIndex + 1].src;
+    }
   }
 
   function close() {
-    overlay.remove();
-    document.removeEventListener("keydown", handleKeydown);
+    if (isAnimating) return;
+    isAnimating = true;
+
+    overlay.style.opacity = "0";
+    setTimeout(() => {
+      overlay.remove();
+      document.removeEventListener("keydown", handleKeydown);
+      document.body.style.overflow = "";
+    }, 300);
   }
 
   function handleKeydown(e: KeyboardEvent) {
+    if (isAnimating) return;
+
     if (e.key === "Escape") close();
     if (e.key === "ArrowLeft" && currentIndex > 0) {
       currentIndex--;
       updateImage();
+      preloadAdjacentImages();
     }
     if (e.key === "ArrowRight" && currentIndex < images.length - 1) {
       currentIndex++;
       updateImage();
+      preloadAdjacentImages();
+    }
+  }
+
+  function handleTouchStart(e: TouchEvent) {
+    touchStartX = e.changedTouches[0].screenX;
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    e.preventDefault();
+  }
+
+  function handleTouchEnd(e: TouchEvent) {
+    if (isAnimating) return;
+
+    touchEndX = e.changedTouches[0].screenX;
+    const swipeDistance = touchEndX - touchStartX;
+
+    if (Math.abs(swipeDistance) >= minSwipeDistance) {
+      if (swipeDistance > 0 && currentIndex > 0) {
+        currentIndex--;
+        updateImage();
+        preloadAdjacentImages();
+      } else if (swipeDistance < 0 && currentIndex < images.length - 1) {
+        currentIndex++;
+        updateImage();
+        preloadAdjacentImages();
+      }
     }
   }
 
@@ -137,6 +210,7 @@ function openLightbox(
     if (currentIndex > 0) {
       currentIndex--;
       updateImage();
+      preloadAdjacentImages();
     }
   });
   nextBtn.addEventListener("click", (e) => {
@@ -144,20 +218,31 @@ function openLightbox(
     if (currentIndex < images.length - 1) {
       currentIndex++;
       updateImage();
+      preloadAdjacentImages();
     }
   });
+
+  overlay.addEventListener("touchstart", handleTouchStart, { passive: true });
+  overlay.addEventListener("touchmove", handleTouchMove, { passive: false });
+  overlay.addEventListener("touchend", handleTouchEnd, { passive: true });
 
   content.append(img, caption, closeBtn, prevBtn, nextBtn, counter);
   overlay.append(content);
   document.body.append(overlay);
+  document.body.style.overflow = "hidden";
+
+  requestAnimationFrame(() => {
+    overlay.style.opacity = "1";
+  });
 
   document.addEventListener("keydown", handleKeydown);
   updateImage();
+  preloadAdjacentImages();
 }
 
 // Slider enhancer
 function enhanceSlider(root: HTMLElement) {
-  const sliders = root.querySelectorAll<HTMLElement>(".gf-slider");
+  const sliders = root.querySelectorAll(".gf-slider");
   sliders.forEach((container) => {
     const figures = container.querySelectorAll("figure");
     if (figures.length === 0) return;
@@ -193,7 +278,6 @@ function enhanceSlider(root: HTMLElement) {
     dots.className = "flex justify-center gap-2 mt-4";
 
     let currentIndex = 0;
-    let interval: ReturnType<typeof setInterval> | null = null;
 
     function updateSlider() {
       track.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -211,27 +295,9 @@ function enhanceSlider(root: HTMLElement) {
       updateSlider();
     }
 
-    function startAutoplay() {
-      if (interval) clearInterval(interval);
-      interval = setInterval(() => {
-        goTo(currentIndex + 1);
-      }, autoplay);
-    }
+    prevBtn.addEventListener("click", () => goTo(currentIndex - 1));
+    nextBtn.addEventListener("click", () => goTo(currentIndex + 1));
 
-    function stopAutoplay() {
-      if (interval) {
-        clearInterval(interval);
-        interval = null;
-      }
-    }
-
-    // Navigation buttons
-    const prevHandler = () => goTo(currentIndex - 1);
-    const nextHandler = () => goTo(currentIndex + 1);
-    prevBtn.addEventListener("click", prevHandler);
-    nextBtn.addEventListener("click", nextHandler);
-
-    // Dot indicators
     slides.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.className =
@@ -241,202 +307,63 @@ function enhanceSlider(root: HTMLElement) {
       dots.appendChild(dot);
     });
 
-    // Touch swipe support
-    let touchStartX = 0;
-    let touchEndX = 0;
-    let isSwiping = false;
-
-    function handleTouchStart(e: TouchEvent) {
-      touchStartX = e.changedTouches[0].screenX;
-      isSwiping = true;
-    }
-
-    function handleTouchMove(e: TouchEvent) {
-      if (!isSwiping) return;
-      touchEndX = e.changedTouches[0].screenX;
-    }
-
-    function handleTouchEnd() {
-      if (!isSwiping) return;
-      isSwiping = false;
-      const diff = touchStartX - touchEndX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) {
-          goTo(currentIndex + 1);
-        } else {
-          goTo(currentIndex - 1);
-        }
-      }
-    }
-
-    // Keyboard navigation
-    function handleKeydown(e: KeyboardEvent) {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        goTo(currentIndex - 1);
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        goTo(currentIndex + 1);
-      }
-    }
-
-    // Setup container
-    container.style.position = "relative";
-    container.style.overflow = "hidden";
-    container.setAttribute("tabindex", "0");
-    container.setAttribute("role", "region");
-    container.setAttribute("aria-label", "Bildslider");
+    (container as HTMLElement).style.position = "relative";
+    (container as HTMLElement).style.overflow = "hidden";
     track.style.width = "100%";
     container.textContent = "";
     container.append(track, prevBtn, nextBtn, dots);
 
-    // Event listeners
-    container.addEventListener("mouseenter", stopAutoplay);
-    container.addEventListener("mouseleave", () => {
-      if (autoplay > 0) startAutoplay();
-    });
-    container.addEventListener("touchstart", handleTouchStart as EventListener, { passive: true });
-    container.addEventListener("touchmove", handleTouchMove as EventListener, { passive: true });
-    container.addEventListener("touchend", handleTouchEnd);
-    container.addEventListener("keydown", handleKeydown);
-
     updateSlider();
 
-    // IntersectionObserver for autoplay
-    let observer: IntersectionObserver | null = null;
     if (autoplay > 0) {
-      observer = new IntersectionObserver(
+      let interval: ReturnType<typeof setInterval>;
+      const startAutoplay = () => {
+        interval = setInterval(() => {
+          goTo(currentIndex + 1);
+        }, autoplay);
+      };
+      const stopAutoplay = () => clearInterval(interval);
+
+      container.addEventListener("mouseenter", stopAutoplay);
+      container.addEventListener("mouseleave", startAutoplay);
+
+      const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
-            startAutoplay();
-          } else {
-            stopAutoplay();
-          }
+          if (entry.isIntersecting) startAutoplay();
+          else stopAutoplay();
         },
         { threshold: 0.5 }
       );
       observer.observe(container);
+
       startAutoplay();
     }
-
-    // Cleanup
-    addCleanup(() => {
-      stopAutoplay();
-      if (observer) {
-        observer.disconnect();
-      }
-      prevBtn.removeEventListener("click", prevHandler);
-      nextBtn.removeEventListener("click", nextHandler);
-      container.removeEventListener("mouseenter", stopAutoplay);
-      container.removeEventListener("touchstart", handleTouchStart as EventListener);
-      container.removeEventListener("touchmove", handleTouchMove as EventListener);
-      container.removeEventListener("touchend", handleTouchEnd);
-      container.removeEventListener("keydown", handleKeydown);
-    });
   });
 }
 
 // Gallery enhancer
 function enhanceGallery(root: HTMLElement) {
-  const galleries = root.querySelectorAll<HTMLElement>(".gf-gallery");
+  const galleries = root.querySelectorAll(".gf-gallery");
   galleries.forEach((container) => {
     const columns = container.getAttribute("data-columns") || "3";
-    const enableLightbox = container.getAttribute("data-lightbox") !== "false";
     const figures = container.querySelectorAll("figure");
 
-    // Responsive grid classes
-    const gridClasses: Record<string, string> = {
-      "2": "grid-cols-1 sm:grid-cols-2",
-      "3": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-      "4": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
-      auto: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-    };
-    const gridClass = gridClasses[columns] || gridClasses["3"];
+    container.classList.add("grid", `grid-cols-${columns}`, "gap-4");
 
-    container.classList.add("grid", ...gridClass.split(" "), "gap-4");
-
-    // Collect images for lightbox
-    const images: { src: string; alt: string; caption: string }[] = [];
     figures.forEach((figure) => {
       const img = figure.querySelector("img");
-      const figcaption = figure.querySelector("figcaption");
       if (img) {
-        images.push({
-          src: img.getAttribute("src") || "",
-          alt: img.getAttribute("alt") || "",
-          caption: figcaption?.textContent || "",
-        });
+        img.classList.add("w-full", "aspect-square", "object-cover", "rounded-lg");
+        img.setAttribute("loading", "lazy");
       }
-    });
-
-    figures.forEach((figure, index) => {
-      const img = figure.querySelector("img");
-      if (!img) return;
-
-      // Image styling
-      img.classList.add(
-        "w-full",
-        "aspect-square",
-        "object-cover",
-        "rounded-lg",
-        "transition-transform",
-        "duration-300"
-      );
-      img.setAttribute("loading", "lazy");
-
-      // Figure styling
-      figure.classList.add(
-        "overflow-hidden",
-        "rounded-lg",
-        "relative",
-        "group",
-        "cursor-pointer"
-      );
-
-      // Copyright overlay
-      const figcaption = figure.querySelector("figcaption");
-      if (figcaption) {
-        (figcaption as HTMLElement).classList.add(
-          "absolute",
-          "bottom-0",
-          "left-0",
-          "right-0",
-          "bg-gradient-to-t",
-          "from-black/70",
-          "to-transparent",
-          "text-white",
-          "text-xs",
-          "p-2",
-          "pt-6",
-          "opacity-0",
-          "group-hover:opacity-100",
-          "transition-opacity",
-          "duration-300",
-          "pointer-events-none"
-        );
-      }
-
-      // Hover zoom effect
-      figure.addEventListener("mouseenter", () => {
-        img.style.transform = "scale(1.05)";
-      });
-      figure.addEventListener("mouseleave", () => {
-        img.style.transform = "scale(1)";
-      });
-
-      // Lightbox click
-      if (enableLightbox) {
-        figure.addEventListener("click", () => {
-          openLightbox(images, index);
-        });
-      }
+      figure.classList.add("overflow-hidden", "rounded-lg");
     });
   });
 }
 
 // Collapsible enhancer
 function enhanceCollapsible(root: HTMLElement) {
-  const collapsibles = root.querySelectorAll("details.gf-collapsible");
+  const collapsibles = root.querySelectorAll("details.gf-collapsible") as NodeListOf<HTMLDetailsElement>;
   collapsibles.forEach((details) => {
     const summary = details.querySelector("summary");
     if (!summary) return;
@@ -447,8 +374,17 @@ function enhanceCollapsible(root: HTMLElement) {
     chevron.innerHTML = "&#9656;";
     summary.prepend(chevron);
 
-    details.addEventListener("toggle", () => {
+    const toggleHandler = () => {
       chevron.style.transform = details.open ? "rotate(90deg)" : "rotate(0)";
+    };
+
+    details.addEventListener("toggle", toggleHandler);
+
+    addCleanupCallback(root, () => {
+      details.removeEventListener("toggle", toggleHandler);
+      if (summary.contains(chevron)) {
+        summary.removeChild(chevron);
+      }
     });
   });
 }
@@ -457,14 +393,24 @@ function enhanceCollapsible(root: HTMLElement) {
 function enhanceAccordion(root: HTMLElement) {
   const accordions = root.querySelectorAll(".gf-accordion");
   accordions.forEach((container) => {
-    const details = container.querySelectorAll("details.gf-accordion-item");
+    const details = container.querySelectorAll("details.gf-accordion-item") as NodeListOf<HTMLDetailsElement>;
+    const toggleHandlers: { details: HTMLDetailsElement; handler: () => void }[] = [];
+
     details.forEach((item) => {
-      item.addEventListener("toggle", () => {
+      const handler = () => {
         if (item.open) {
           details.forEach((other) => {
             if (other !== item) other.removeAttribute("open");
           });
         }
+      };
+      item.addEventListener("toggle", handler);
+      toggleHandlers.push({ details: item, handler });
+    });
+
+    addCleanupCallback(root, () => {
+      toggleHandlers.forEach(({ details: item, handler }) => {
+        item.removeEventListener("toggle", handler);
       });
     });
   });
@@ -502,6 +448,19 @@ function enhanceCallout(root: HTMLElement) {
     icon.className = "mr-2 text-lg";
     icon.innerHTML = icons[type] || icons.info;
     callout.prepend(icon);
+
+    addCleanupCallback(root, () => {
+      if (callout.contains(icon)) {
+        callout.removeChild(icon);
+        callout.classList.remove(
+          "border-l-4",
+          "rounded-r-lg",
+          "p-4",
+          "my-4",
+          ...(colors[type] || colors.info).split(" ")
+        );
+      }
+    });
   });
 }
 
