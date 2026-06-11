@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowUp } from "@fortawesome/free-solid-svg-icons";
@@ -43,16 +43,16 @@ export default function Activities() {
 
   return (
     <div>
-      <div className="bg-gradient-to-r from-[#2d6a1e] to-[#4a8c34] rounded-t-xl p-6 md:p-8">
+      <div className="bg-gradient-to-r from--primary to--primary-light rounded-t-xl p-6 md:p-8">
         <h1 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
           Aktivitäten & Beiträge
         </h1>
         <p className="text-green-100 mt-2">Neuigkeiten und Termine der Goldsteinfreunde</p>
       </div>
 
-      <div className="bg-white rounded-b-xl shadow-md">
+      <div className="bg-surface-card rounded-b-xl shadow-md">
         {content.posts.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-text-muted">
             <p className="text-lg">Noch keine Beiträge vorhanden.</p>
           </div>
         ) : (
@@ -60,31 +60,31 @@ export default function Activities() {
             <article
               key={post.id}
               id={`post-${post.id}`}
-              className={`p-6 md:p-8 ${index < visiblePosts.length - 1 ? "border-b-2 border-gray-300 mb-6" : ""}`}
+              className={`p-6 md:p-8 ${index < visiblePosts.length - 1 ? "border-b-2 border-border mb-6" : ""}`}
             >
-              <div className="flex items-center gap-3 text-sm text-gray-500 mb-3">
+              <div className="flex items-center gap-3 text-sm text-text-muted mb-3">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <time>{formatDate(post.date)}</time>
-                <span className="text-gray-300">|</span>
+                <span className="text-border">|</span>
                 <span>von {post.author}</span>
               </div>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: "var(--font-heading)" }}>
+              <h2 className="text-xl md:text-2xl font-bold text-text mb-4" style={{ fontFamily: "var(--font-heading)" }}>
                 {post.title}
               </h2>
               <div
-                className="prose prose-green max-w-none text-gray-700 leading-relaxed
-                  [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-[#2d6a1e] [&_h3]:mt-6 [&_h3]:mb-3
+                className="prose prose-green max-w-none text-text leading-relaxed
+                  [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-6 [&_h3]:mb-3
                   [&_p]:mb-4
                   [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1
-                  [&_a]:text-[#2d6a1e] [&_a]:underline [&_a]:hover:text-[#1a4d0f]
-                  [&_strong]:text-gray-900"
+                  [&_a]:text--primary [&_a]:underline [&_a]:hover:text--primary-dark
+                  [&_strong]:text-text"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="mt-4 text-sm text-gray-500 hover:text-[#2d6a1e] transition-colors flex items-center gap-1.5"
+                className="mt-4 text-sm text-text-muted hover:text--primary transition-colors flex items-center gap-1.5"
               >
                 <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
                 Nach oben
@@ -93,15 +93,15 @@ export default function Activities() {
           ))
         )}
         {content.posts.length > 0 && (ALWAYS_SHOW_PAGINATION || totalPages > 1) && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 md:px-8 py-5 border-t border-gray-100 bg-gray-50 rounded-b-xl">
-            <p className="text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 md:px-8 py-5 border-t border-border bg-surface-alt rounded-b-xl">
+            <p className="text-sm text-text-muted">
               Seite {currentPage} von {totalPages} · {content.posts.length} Beiträge
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => goToPage(1)}
                 disabled={currentPage === 1}
-                className="w-8 h-8 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 text-sm rounded-lg border border-border text-text hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Erste Seite"
               >
                 <FontAwesomeIcon icon={faAnglesLeft} />
@@ -109,7 +109,7 @@ export default function Activities() {
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="w-8 h-8 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 text-sm rounded-lg border border-border text-text hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Vorherige Seite"
               >
                 <FontAwesomeIcon icon={faAngleLeft} />
@@ -118,7 +118,7 @@ export default function Activities() {
                 <button
                   key={pageNumber}
                   onClick={() => goToPage(pageNumber)}
-                  className={`w-8 h-8 text-sm rounded-lg border transition-colors ${pageNumber === currentPage ? "bg-[#2d6a1e] border-[#2d6a1e] text-white" : "border-gray-300 text-gray-700 hover:bg-white"}`}
+                  className={`w-8 h-8 text-sm rounded-lg border transition-colors ${pageNumber === currentPage ? "bg--primary border--primary text-white" : "border-border text-text hover:bg-white"}`}
                 >
                   {pageNumber}
                 </button>
@@ -126,7 +126,7 @@ export default function Activities() {
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="w-8 h-8 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 text-sm rounded-lg border border-border text-text hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Nächste Seite"
               >
                 <FontAwesomeIcon icon={faAngleRight} />
@@ -134,7 +134,7 @@ export default function Activities() {
               <button
                 onClick={() => goToPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className="w-8 h-8 text-sm rounded-lg border border-gray-300 text-gray-700 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 text-sm rounded-lg border border-border text-text hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label="Letzte Seite"
               >
                 <FontAwesomeIcon icon={faAnglesRight} />

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef, type ReactNode } from "react";
+﻿import { useCallback, useEffect, useState, useRef, type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBold,
@@ -48,8 +48,8 @@ export default function Admin() {
   if (!authenticated) {
     return (
       <div className="max-w-md mx-auto mt-16">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-[#2d6a1e] to-[#4a8c34] p-6 text-center">
+        <div className="bg-surface-card rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from--primary to--primary-light p-6 text-center">
             <svg className="w-12 h-12 text-white/80 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
@@ -77,19 +77,19 @@ export default function Admin() {
                 }
               }}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-2">Passwort</label>
+              <label className="block text-sm font-medium text-text mb-2">Passwort</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
                 placeholder="Passwort eingeben…"
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={isLoggingIn}
-                className="w-full mt-4 bg-[#2d6a1e] text-white py-3 rounded-lg font-semibold hover:bg-[#1a4d0f] transition-colors"
+                className="w-full mt-4 bg--primary text-white py-3 rounded-lg font-semibold hover:bg--primary-dark transition-colors"
               >
                 {isLoggingIn ? "Prüfe..." : "Anmelden"}
               </button>
@@ -131,12 +131,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-heading)" }}>
+          <h1 className="text-2xl font-bold text-text" style={{ fontFamily: "var(--font-heading)" }}>
             Admin-Dashboard
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Inhalte der Website verwalten</p>
+          <p className="text-text-muted text-sm mt-1">Inhalte der Website verwalten</p>
         </div>
-        <button onClick={onLogout} className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-2 rounded-lg hover:bg-red-50">
+        <button onClick={onLogout} className="text-sm text-text-muted hover:text-red-600 transition-colors px-3 py-2 rounded-lg hover:bg-red-50">
           ← Abmelden
         </button>
       </div>
@@ -149,15 +149,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       )}
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
+      <div className="flex gap-1 bg-surface-alt rounded-xl p-1 mb-6">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => { setActiveTab(tab.key); setEditingPost(null); }}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
               activeTab === tab.key
-                ? "bg-white shadow text-[#2d6a1e]"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white shadow text--primary"
+                : "text-text hover:text-text"
             }`}
           >
             <span>{tab.icon}</span>
@@ -184,10 +184,10 @@ function PostsList({ onEdit, onNewPost }: { onEdit: (post: Post) => void; onNewP
   const { content, deletePost } = useContent();
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      <div className="flex items-center justify-between p-5 border-b border-gray-100">
-        <h2 className="font-bold text-gray-900">Alle Beiträge ({content.posts.length})</h2>
-        <button onClick={onNewPost} className="bg-[#2d6a1e] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1a4d0f] transition-colors flex items-center gap-1">
+    <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+      <div className="flex items-center justify-between p-5 border-b border-border">
+        <h2 className="font-bold text-text">Alle Beiträge ({content.posts.length})</h2>
+        <button onClick={onNewPost} className="bg--primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg--primary-dark transition-colors flex items-center gap-1">
           <span className="text-lg leading-none">+</span> Neuer Beitrag
         </button>
       </div>
@@ -205,27 +205,27 @@ function PostsList({ onEdit, onNewPost }: { onEdit: (post: Post) => void; onNewP
         </div>
       </div>
       {content.posts.length === 0 ? (
-        <div className="p-8 text-center text-gray-400">
+        <div className="p-8 text-center text-text-muted">
           <p>Noch keine Beiträge vorhanden.</p>
-          <button onClick={onNewPost} className="mt-3 text-[#2d6a1e] font-medium hover:underline">
+          <button onClick={onNewPost} className="mt-3 text--primary font-medium hover:underline">
             Ersten Beitrag erstellen →
           </button>
         </div>
       ) : (
         <div className="divide-y divide-gray-50">
           {content.posts.map((post) => (
-            <div key={post.id} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+            <div key={post.id} className="flex items-center gap-4 p-4 hover:bg-surface-alt transition-colors">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span className="text-green-700 text-lg">📄</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 truncate">{post.title || "(Ohne Titel)"}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <h3 className="font-semibold text-text truncate">{post.title || "(Ohne Titel)"}</h3>
+                <p className="text-xs text-text-muted mt-0.5">
                   {formatDate(post.date)} · {post.author || "Unbekannt"}
                 </p>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <button onClick={() => onEdit(post)} className="px-3 py-1.5 text-sm text-[#2d6a1e] bg-green-50 rounded-lg hover:bg-green-100 transition-colors font-medium">
+                <button onClick={() => onEdit(post)} className="px-3 py-1.5 text-sm text--primary bg-green-50 rounded-lg hover:bg-green-100 transition-colors font-medium">
                   Bearbeiten
                 </button>
                 <button
@@ -260,20 +260,20 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      <div className="flex items-center justify-between p-5 border-b border-gray-100">
-        <h2 className="font-bold text-gray-900">{isNew ? "Neuer Beitrag" : "Beitrag bearbeiten"}</h2>
-        <button onClick={onCancel} className="text-sm text-gray-500 hover:text-gray-700">← Zurück</button>
+    <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+      <div className="flex items-center justify-between p-5 border-b border-border">
+        <h2 className="font-bold text-text">{isNew ? "Neuer Beitrag" : "Beitrag bearbeiten"}</h2>
+        <button onClick={onCancel} className="text-sm text-text-muted hover:text-text">← Zurück</button>
       </div>
       <div className="p-5 space-y-5">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Titel *</label>
+          <label className="block text-sm font-medium text-text mb-1.5">Titel *</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+            className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
             placeholder="z.B. Aktivitäten und Termine 2026"
           />
         </div>
@@ -281,21 +281,21 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
         {/* Date & Author row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Datum *</label>
+            <label className="block text-sm font-medium text-text mb-1.5">Datum *</label>
             <input
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+              className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Autor</label>
+            <label className="block text-sm font-medium text-text mb-1.5">Autor</label>
             <input
               type="text"
               value={form.author}
               onChange={(e) => setForm({ ...form, author: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+              className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
               placeholder="z.B. Peter Hippeli"
             />
           </div>
@@ -304,17 +304,17 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
         {/* Content with Edit/Preview toggle */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm font-medium text-gray-700">Inhalt (HTML)</label>
-            <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <label className="text-sm font-medium text-text">Inhalt (HTML)</label>
+            <div className="flex bg-surface-alt rounded-lg p-0.5">
               <button
                 onClick={() => setShowPreview(false)}
-                className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${!showPreview ? "bg-white shadow text-[#2d6a1e]" : "text-gray-600"}`}
+                className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${!showPreview ? "bg-white shadow text--primary" : "text-text"}`}
               >
                 Bearbeiten
               </button>
               <button
                 onClick={() => setShowPreview(true)}
-                className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${showPreview ? "bg-white shadow text-[#2d6a1e]" : "text-gray-600"}`}
+                className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${showPreview ? "bg-white shadow text--primary" : "text-text"}`}
               >
                 Vorschau
               </button>
@@ -323,12 +323,12 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
 
           {showPreview ? (
             <div
-              className="prose prose-green max-w-none text-gray-700 leading-relaxed border border-gray-300 rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto
-                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-[#2d6a1e] [&_h3]:mt-4 [&_h3]:mb-2
+              className="prose prose-green max-w-none text-text leading-relaxed border border-border rounded-lg p-4 min-h-[300px] max-h-[500px] overflow-y-auto
+                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-4 [&_h3]:mb-2
                 [&_p]:mb-3
                 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
-                [&_a]:text-[#2d6a1e] [&_a]:underline
-                [&_strong]:text-gray-900"
+                [&_a]:text--primary [&_a]:underline
+                [&_strong]:text-text"
               dangerouslySetInnerHTML={{ __html: form.content || "<p><em>Kein Inhalt</em></p>" }}
             />
           ) : (
@@ -351,10 +351,10 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
                 rows={15}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none font-mono text-sm leading-relaxed"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none font-mono text-sm leading-relaxed"
                 placeholder="<p>Ihr Inhalt in HTML…</p>"
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 Tipp: Nutzen Sie HTML-Tags wie &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;, &lt;a href="…"&gt;
               </p>
             </>
@@ -362,11 +362,11 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-3 border-t border-gray-100">
-          <button onClick={handleSave} className="bg-[#2d6a1e] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#1a4d0f] transition-colors">
+        <div className="flex gap-3 pt-3 border-t border-border">
+          <button onClick={handleSave} className="bg--primary text-white px-6 py-2.5 rounded-lg font-semibold hover:bg--primary-dark transition-colors">
             💾 Speichern
           </button>
-          <button onClick={onCancel} className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+          <button onClick={onCancel} className="px-6 py-2.5 border border-border rounded-lg text-text font-medium hover:bg-surface-alt transition-colors">
             Abbrechen
           </button>
         </div>
@@ -396,7 +396,7 @@ function FormatBtn({ label, icon, before, after, form, setForm, textareaId }: {
           ta.selectionEnd = start + before.length + selected.length;
         }, 0);
       }}
-      className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-mono border border-gray-200 inline-flex items-center gap-1"
+      className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border inline-flex items-center gap-1"
       title={label}
     >
       <FontAwesomeIcon icon={icon} className="text-[11px]" />
@@ -427,10 +427,10 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      <div className="p-5 border-b border-gray-100">
-        <h2 className="font-bold text-gray-900">Website-Einstellungen</h2>
-        <p className="text-sm text-gray-500 mt-1">Kontaktdaten, Vereinsinformationen usw.</p>
+    <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+      <div className="p-5 border-b border-border">
+        <h2 className="font-bold text-text">Website-Einstellungen</h2>
+        <p className="text-sm text-text-muted mt-1">Kontaktdaten, Vereinsinformationen usw.</p>
       </div>
       <div className="p-5 space-y-6">
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
@@ -457,10 +457,10 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
 
         {/* Banner Image */}
         <Section title="Banner-Bild (Startseite)" collapsible>
-          <p className="text-xs text-gray-500 mb-2">Laden Sie ein Bild für den Banner auf der Startseite hoch. Empfohlen: 1200×400px, max. 500 KB.</p>
+          <p className="text-xs text-text-muted mb-2">Laden Sie ein Bild für den Banner auf der Startseite hoch. Empfohlen: 1200×400px, max. 500 KB.</p>
           {config.bannerImage ? (
             <div className="space-y-3">
-              <div className="relative rounded-lg overflow-hidden h-32 bg-gray-100">
+              <div className="relative rounded-lg overflow-hidden h-32 bg-surface-alt">
                 <img src={config.bannerImage} alt="Banner" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
               </div>
@@ -484,9 +484,9 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
                   reader.onload = () => setConfig({ ...config, bannerImage: reader.result as string });
                   reader.readAsDataURL(file);
                 }}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-[#2d6a1e] hover:file:bg-green-100"
+                className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text--primary hover:file:bg-green-100"
               />
-              <p className="text-xs text-gray-400 mt-1">Aktuell wird ein grüner Gradient als Banner angezeigt.</p>
+              <p className="text-xs text-text-muted mt-1">Aktuell wird ein grüner Gradient als Banner angezeigt.</p>
             </div>
           )}
           {config.bannerImage && (
@@ -496,7 +496,7 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
                 value={config.bannerImageCredit || ""}
                 onChange={(v) => setConfig({ ...config, bannerImageCredit: v })}
               />
-              <p className="text-[11px] text-gray-400 mt-1">
+              <p className="text-[11px] text-text-muted mt-1">
                 Geben Sie den Urheber an (z. B. <code>Gerd Hildebrand</code> oder <code>© Name / Stockagentur</code>). Das Feld darf nicht leer sein.
               </p>
             </div>
@@ -549,7 +549,7 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
         </Section>
 
         <Section title="Seiteninhalte" collapsible defaultOpen>
-          <p className="text-xs text-gray-500 -mt-1">Hier können die Haupttexte von Startseite, Über uns, Hüttennutzung, Impressum und Datenschutz gepflegt werden (HTML erlaubt).</p>
+          <p className="text-xs text-text-muted -mt-1">Hier können die Haupttexte von Startseite, Über uns, Hüttennutzung, Impressum und Datenschutz gepflegt werden (HTML erlaubt).</p>
           <SubSection title="Startseite" defaultOpen>
             <HtmlField
               label="Willkommensbox"
@@ -559,11 +559,11 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
             />
           </SubSection>
           <SubSection title="Über uns">
-            <div className="mb-4 space-y-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">Bild der Über uns Seite</label>
+            <div className="mb-4 space-y-3 p-3 bg-surface-alt border border-border rounded-lg">
+              <label className="block text-xs font-bold text-text uppercase tracking-wider">Bild der Über uns Seite</label>
               {config.aboutImage ? (
                 <div className="space-y-3">
-                  <div className="relative rounded-lg overflow-hidden h-32 bg-gray-100 max-w-sm">
+                  <div className="relative rounded-lg overflow-hidden h-32 bg-surface-alt max-w-sm">
                     <img src={config.aboutImage} alt="Über uns Bild" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                   </div>
@@ -587,9 +587,9 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
                       reader.onload = () => setConfig({ ...config, aboutImage: reader.result as string });
                       reader.readAsDataURL(file);
                     }}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-[#2d6a1e] hover:file:bg-green-100 cursor-pointer"
+                    className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text--primary hover:file:bg-green-100 cursor-pointer"
                   />
-                  <p className="text-xs text-gray-400 mt-1">Aktuell wird das Standardbild angezeigt.</p>
+                  <p className="text-xs text-text-muted mt-1">Aktuell wird das Standardbild angezeigt.</p>
                 </div>
               )}
               {config.aboutImage && (
@@ -599,7 +599,7 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
                     value={config.aboutImageCredit || ""}
                     onChange={(v) => setConfig({ ...config, aboutImageCredit: v })}
                   />
-                  <p className="text-[11px] text-gray-400 mt-1">
+                  <p className="text-[11px] text-text-muted mt-1">
                     Geben Sie den Urheber an (z. B. <code>Privat</code> oder <code>Foto: Gerd Hildebrand</code>). Das Feld darf nicht leer sein.
                   </p>
                 </div>
@@ -638,8 +638,8 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
           </SubSection>
         </Section>
 
-        <div className="flex gap-3 pt-3 border-t border-gray-100">
-          <button onClick={handleSave} className="bg-[#2d6a1e] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#1a4d0f] transition-colors">
+        <div className="flex gap-3 pt-3 border-t border-border">
+          <button onClick={handleSave} className="bg--primary text-white px-6 py-2.5 rounded-lg font-semibold hover:bg--primary-dark transition-colors">
             💾 Einstellungen speichern
           </button>
         </div>
@@ -664,14 +664,14 @@ function BoardEditor({ board, onChange }: { board: SiteConfig["board"]; onChange
             type="text"
             value={member.name}
             onChange={(e) => updateMember(i, "name", e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+            className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
             placeholder="Name"
           />
           <input
             type="text"
             value={member.role}
             onChange={(e) => updateMember(i, "role", e.target.value)}
-            className="w-40 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+            className="w-40 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
             placeholder="Rolle (optional)"
           />
           <button onClick={() => removeMember(i)} className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Entfernen">
@@ -679,7 +679,7 @@ function BoardEditor({ board, onChange }: { board: SiteConfig["board"]; onChange
           </button>
         </div>
       ))}
-      <button onClick={addMember} className="text-sm text-[#2d6a1e] font-medium hover:underline">
+      <button onClick={addMember} className="text-sm text--primary font-medium hover:underline">
         + Mitglied hinzufügen
       </button>
     </div>
@@ -778,32 +778,32 @@ function GitHubSetup({ onStatus, onLogout }: { onStatus: (type: "success" | "err
       </div>
 
       {/* Connection form */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="p-5 border-b border-gray-100">
-          <h2 className="font-bold text-gray-900">Verbindung</h2>
-          <p className="text-sm text-gray-500 mt-1">
+      <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+        <div className="p-5 border-b border-border">
+          <h2 className="font-bold text-text">Verbindung</h2>
+          <p className="text-sm text-text-muted mt-1">
             {hasRemoteBackend ? "✓ Verbunden mit Gist" : "Noch nicht erreichbar"}
           </p>
         </div>
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Bearbeitet von *</label>
+              <label className="block text-sm font-medium text-text mb-1.5">Bearbeitet von *</label>
               <input
                 type="text"
                 value={editorName}
                 onChange={(e) => setEditorName(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none text-sm"
+                className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
                 placeholder="z.B. Martina"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Änderungsnotiz *</label>
+              <label className="block text-sm font-medium text-text mb-1.5">Änderungsnotiz *</label>
               <input
                 type="text"
                 value={publishSummary}
                 onChange={(e) => setPublishSummary(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none text-sm"
+                className="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
                 placeholder="z.B. Neue Termine ergänzt"
               />
             </div>
@@ -822,14 +822,14 @@ function GitHubSetup({ onStatus, onLogout }: { onStatus: (type: "success" | "err
             <button
               onClick={handlePublish}
               disabled={isPublishing}
-              className="bg-[#2d6a1e] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#1a4d0f] transition-colors disabled:opacity-50"
+              className="bg--primary text-white px-5 py-2.5 rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-50"
             >
               {isPublishing ? "⏳ Veröffentliche…" : "🚀 Jetzt veröffentlichen"}
             </button>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="px-5 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="px-5 py-2.5 border border-border rounded-lg font-medium hover:bg-surface-alt transition-colors disabled:opacity-50"
             >
               {isRefreshing ? "⏳ Laden…" : "🔄 Inhalte laden"}
             </button>
@@ -854,32 +854,32 @@ function GitHubSetup({ onStatus, onLogout }: { onStatus: (type: "success" | "err
       )}
 
       {hasRemoteBackend && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between gap-3">
+        <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+          <div className="p-5 border-b border-border flex items-center justify-between gap-3">
             <div>
-              <h3 className="font-bold text-gray-900">Letzte Veröffentlichungen</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Die letzten 5 Einträge aus dem Audit-Log.</p>
+              <h3 className="font-bold text-text">Letzte Veröffentlichungen</h3>
+              <p className="text-sm text-text-muted mt-0.5">Die letzten 5 Einträge aus dem Audit-Log.</p>
             </div>
-            <button onClick={loadAuditLog} className="text-sm text-[#2d6a1e] hover:underline font-medium">
+            <button onClick={loadAuditLog} className="text-sm text--primary hover:underline font-medium">
               Aktualisieren
             </button>
           </div>
           <div className="p-5">
             {isAuditLoading ? (
-              <p className="text-sm text-gray-500">Audit-Log wird geladen...</p>
+              <p className="text-sm text-text-muted">Audit-Log wird geladen...</p>
             ) : auditError ? (
               <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{auditError}</p>
             ) : auditLog.length === 0 ? (
-              <p className="text-sm text-gray-500">Noch keine Veröffentlichungen im Audit-Log. Einträge erscheinen nach dem nächsten erfolgreichen Publish.</p>
+              <p className="text-sm text-text-muted">Noch keine Veröffentlichungen im Audit-Log. Einträge erscheinen nach dem nächsten erfolgreichen Publish.</p>
             ) : (
               <div className="space-y-3">
                 {auditLog.map((entry, index) => (
-                  <div key={`${entry.timestamp}-${index}`} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs text-gray-500 mb-1">
+                  <div key={`${entry.timestamp}-${index}`} className="border border-border rounded-lg p-3 bg-surface-alt">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs text-text-muted mb-1">
                       <span>{new Date(entry.timestamp).toLocaleString("de-DE")}</span>
                       <span>von {entry.editor}</span>
                     </div>
-                    <p className="text-sm text-gray-800">{entry.summary}</p>
+                    <p className="text-sm text-text">{entry.summary}</p>
                   </div>
                 ))}
               </div>
@@ -928,29 +928,29 @@ function ExportImport({ onStatus }: { onStatus: (type: "success" | "error", text
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Export */}
-        <div className="bg-white rounded-xl shadow-md p-5">
-          <h3 className="font-bold text-gray-900 mb-3">📤 Export</h3>
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="bg-surface-card rounded-xl shadow-md p-5">
+          <h3 className="font-bold text-text mb-3">📤 Export</h3>
+          <p className="text-sm text-text mb-4">
             Laden Sie alle Inhalte als JSON-Datei herunter.
           </p>
           <button
             onClick={() => { exportAsJson(); onStatus("success", "✓ Export gestartet (Download). Bitte Download-Ordner prüfen."); }}
-            className="w-full bg-[#2d6a1e] text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-[#1a4d0f] transition-colors"
+            className="w-full bg--primary text-white px-4 py-2.5 rounded-lg font-semibold hover:bg--primary-dark transition-colors"
           >
             📥 Inhalt exportieren
           </button>
         </div>
 
         {/* Import */}
-        <div className="bg-white rounded-xl shadow-md p-5">
-          <h3 className="font-bold text-gray-900 mb-3">📥 Import</h3>
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="bg-surface-card rounded-xl shadow-md p-5">
+          <h3 className="font-bold text-text mb-3">📥 Import</h3>
+          <p className="text-sm text-text mb-4">
             Laden Sie eine zuvor exportierte JSON-Datei hoch.
           </p>
           <input ref={fileRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
           <button
             onClick={() => fileRef.current?.click()}
-            className="w-full border-2 border-dashed border-gray-300 text-gray-600 px-4 py-2.5 rounded-lg font-semibold hover:border-[#2d6a1e] hover:text-[#2d6a1e] transition-colors"
+            className="w-full border-2 border-dashed border-border text-text px-4 py-2.5 rounded-lg font-semibold hover:border--primary hover:text--primary transition-colors"
           >
             📂 Datei auswählen…
           </button>
@@ -982,7 +982,7 @@ function ImagePickerButton({ form, setForm, textareaId }: {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-mono border border-gray-200"
+        className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border"
         title="Bild aus Bibliothek einfügen"
       >
         🖼️ Bibliothek
@@ -990,33 +990,33 @@ function ImagePickerButton({ form, setForm, textareaId }: {
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-mono border border-gray-200"
+        className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border"
         title="Neues Bild hochladen und einfügen"
       >
         ⬆️ Upload
       </button>
       {open && (
-        <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-3 w-72 max-h-64 overflow-y-auto">
-          <p className="text-xs text-gray-500 mb-2 font-medium">Bild aus Bibliothek einfügen:</p>
+        <div className="absolute z-20 mt-1 bg-surface-card border border-border rounded-lg shadow-xl p-3 w-72 max-h-64 overflow-y-auto">
+          <p className="text-xs text-text-muted mb-2 font-medium">Bild aus Bibliothek einfügen:</p>
           {content.images?.length ? (
             <div className="grid grid-cols-3 gap-2">
               {content.images.map((img) => (
                 <button
                   key={img.id}
                   onClick={() => insertTag(img.dataUrl, img.name, img.copyright || "Privat")}
-                  className="rounded-lg overflow-hidden border-2 border-transparent hover:border-[#2d6a1e] transition-colors aspect-square"
+                  className="rounded-lg overflow-hidden border-2 border-transparent hover:border--primary transition-colors aspect-square"
                 >
                   <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
           ) : (
-            <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+            <div className="text-xs text-text-muted bg-surface-alt border border-border rounded-lg px-3 py-2">
               Noch keine Bilder in der Bibliothek.
             </div>
           )}
-          <div className="border-t border-gray-100 mt-2 pt-2">
-            <button onClick={() => { setOpen(false); fileRef.current?.click(); }} className="text-xs text-[#2d6a1e] font-medium hover:underline">
+          <div className="border-t border-border mt-2 pt-2">
+            <button onClick={() => { setOpen(false); fileRef.current?.click(); }} className="text-xs text--primary font-medium hover:underline">
               + Neues Bild hochladen…
             </button>
           </div>
@@ -1111,39 +1111,39 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
       {/* Upload Modal */}
       {pendingFile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
-            <div className="bg-[#2d6a1e] p-4 text-white">
+          <div className="bg-surface-card rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="bg--primary p-4 text-white">
               <h3 className="font-bold text-lg">📸 Bildquellennachweis angeben</h3>
               <p className="text-xs text-green-100 mt-0.5">Urheberangaben sind gesetzlich vorgeschrieben</p>
             </div>
             <div className="p-5 space-y-4">
-              <div className="flex gap-4 items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
-                <img src={pendingFile.dataUrl} alt="Vorschau" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+              <div className="flex gap-4 items-center bg-surface-alt p-3 rounded-lg border border-border">
+                <img src={pendingFile.dataUrl} alt="Vorschau" className="w-16 h-16 object-cover rounded-lg border border-border" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-gray-400 font-medium">Datei:</p>
-                  <p className="text-sm font-semibold text-gray-800 truncate">{pendingFile.file.name}</p>
-                  <p className="text-xs text-gray-500">{(pendingFile.file.size / 1024).toFixed(0)} KB</p>
+                  <p className="text-xs text-text-muted font-medium">Datei:</p>
+                  <p className="text-sm font-semibold text-text truncate">{pendingFile.file.name}</p>
+                  <p className="text-xs text-text-muted">{(pendingFile.file.size / 1024).toFixed(0)} KB</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Bildname</label>
+                <label className="block text-xs font-bold text-text uppercase tracking-wider mb-1">Bildname</label>
                 <input
                   type="text"
                   value={pendingFile.name}
                   onChange={(e) => setPendingFile({ ...pendingFile, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
                   placeholder="z.B. Eröffnungstermin"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Quellennachweis / Urheberrecht *</label>
+                <label className="block text-xs font-bold text-text uppercase tracking-wider mb-1">Quellennachweis / Urheberrecht *</label>
                 <input
                   type="text"
                   value={pendingFile.copyright}
                   onChange={(e) => setPendingFile({ ...pendingFile, copyright: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
                   placeholder="z.B. Gerd Hildebrand"
                   autoFocus
                 />
@@ -1164,7 +1164,7 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
                 <button
                   type="button"
                   onClick={() => setPendingFile(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-text hover:bg-surface-alt transition-colors"
                 >
                   Abbrechen
                 </button>
@@ -1184,7 +1184,7 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
                     onStatus("success", `Bild "${pendingFile.name}" erfolgreich hinzugefügt!`);
                   }}
                   disabled={!pendingFile.copyright.trim() || !pendingFile.name.trim()}
-                  className="px-4 py-2 bg-[#2d6a1e] text-white rounded-lg text-sm font-semibold hover:bg-[#1a4d0f] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg--primary text-white rounded-lg text-sm font-semibold hover:bg--primary-dark transition-colors disabled:opacity-50"
                 >
                   Bild hinzufügen
                 </button>
@@ -1195,17 +1195,17 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
       )}
 
       {/* Upload + Info */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+      <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-border">
           <div>
-            <h2 className="font-bold text-gray-900">Bild-Bibliothek</h2>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h2 className="font-bold text-text">Bild-Bibliothek</h2>
+            <p className="text-sm text-text-muted mt-0.5">
               {content.images?.length || 0} Bilder · {(totalSize / 1024).toFixed(0)} KB belegt
             </p>
           </div>
           <div>
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} className="hidden" />
-            <button onClick={() => fileRef.current?.click()} className="bg-[#2d6a1e] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1a4d0f] transition-colors flex items-center gap-1">
+            <button onClick={() => fileRef.current?.click()} className="bg--primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg--primary-dark transition-colors flex items-center gap-1">
               <span className="text-lg leading-none">+</span> Bild hochladen
             </button>
           </div>
@@ -1213,7 +1213,7 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
 
         {/* Image grid */}
         {(!content.images || content.images.length === 0) ? (
-          <div className="p-10 text-center text-gray-400">
+          <div className="p-10 text-center text-text-muted">
             <p className="text-4xl mb-3">🖼️</p>
             <p>Noch keine Bilder vorhanden.</p>
             <p className="text-sm mt-1">Laden Sie Bilder hoch, um sie in Artikeln zu verwenden.</p>
@@ -1221,20 +1221,20 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-5">
             {content.images.map((img) => (
-              <div key={img.id} className="group relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+              <div key={img.id} className="group relative bg-surface-alt rounded-lg overflow-hidden border border-border">
                 <div className="aspect-square">
                   <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="p-2">
-                  <p className="text-xs font-medium text-gray-700 truncate">{img.name}</p>
-                  <p className="text-[10px] text-gray-500 truncate" title={`Urheber: ${img.copyright}`}>📷 {img.copyright || "Privat"}</p>
-                  <p className="text-xs text-gray-400">{(img.dataUrl.length * 0.75 / 1024).toFixed(0)} KB</p>
+                  <p className="text-xs font-medium text-text truncate">{img.name}</p>
+                  <p className="text-[10px] text-text-muted truncate" title={`Urheber: ${img.copyright}`}>📷 {img.copyright || "Privat"}</p>
+                  <p className="text-xs text-text-muted">{(img.dataUrl.length * 0.75 / 1024).toFixed(0)} KB</p>
                 </div>
                 {/* Actions overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   <button
                     onClick={() => copyTag(img)}
-                    className="px-3 py-1.5 bg-white text-gray-800 rounded-lg text-xs font-medium hover:bg-gray-100 shadow"
+                    className="px-3 py-1.5 bg-white text-text rounded-lg text-xs font-medium hover:bg-surface-alt shadow"
                   >
                     {copiedId === img.id ? "✓ Kopiert!" : "📋 Code kopieren"}
                   </button>
@@ -1252,9 +1252,9 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
       </div>
 
       {/* Help */}
-      <div className="bg-white rounded-xl shadow-md p-5 space-y-3">
-        <h3 className="font-bold text-gray-900">💡 Bilder in Artikeln verwenden</h3>
-        <div className="text-sm text-gray-600 space-y-2">
+      <div className="bg-surface-card rounded-xl shadow-md p-5 space-y-3">
+        <h3 className="font-bold text-text">💡 Bilder in Artikeln verwenden</h3>
+        <div className="text-sm text-text space-y-2">
           <p><strong>Methode 1 — Aus Bibliothek:</strong> Klicken Sie im Beitragseditor auf „🖼️ Bibliothek" und wählen Sie ein vorhandenes Bild.</p>
           <p><strong>Methode 2 — Direkt hochladen:</strong> Klicken Sie im Beitragseditor auf „⬆️ Upload" und wählen Sie eine neue Datei. Das Bild wird direkt eingefügt.</p>
           <p><strong>Methode 3 — Code kopieren:</strong> Klicken Sie auf „📋 Code kopieren" bei einem Bild und fügen Sie den HTML-Code im Beitragseditor ein.</p>
@@ -1266,19 +1266,19 @@ function ImageLibrary({ onStatus }: { onStatus: (type: "success" | "error", text
       </div>
 
       {/* Storage info */}
-      <div className="bg-white rounded-xl shadow-md p-5">
-        <h3 className="font-bold text-gray-900 mb-3">📊 Speicherplatz-Übersicht</h3>
+      <div className="bg-surface-card rounded-xl shadow-md p-5">
+        <h3 className="font-bold text-text mb-3">📊 Speicherplatz-Übersicht</h3>
         <div className="space-y-3">
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">GitHub Gist (Bilder + Inhalte)</span>
+              <span className="text-text">GitHub Gist (Bilder + Inhalte)</span>
               <span className="font-medium">{(totalSize / 1024).toFixed(0)} KB / 100 MB</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-[#2d6a1e] rounded-full h-2 transition-all" style={{ width: `${Math.min(100, (totalSize / (100 * 1024 * 1024)) * 100)}%` }}></div>
+            <div className="w-full bg-border rounded-full h-2">
+              <div className="bg--primary rounded-full h-2 transition-all" style={{ width: `${Math.min(100, (totalSize / (100 * 1024 * 1024)) * 100)}%` }}></div>
             </div>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-text-muted">
             Cloudflare Pages: Unbegrenzte Bandbreite, 25 MB pro Datei, 20.000 Dateien.
             Der Gist speichert alle Inhalte und Bilder als JSON.
           </p>
@@ -1294,17 +1294,17 @@ function Section({ title, children, collapsible = false, defaultOpen = false }: 
   if (!collapsible) {
     return (
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-[#2d6a1e] uppercase tracking-wider">{title}</h3>
+        <h3 className="text-sm font-bold text--primary uppercase tracking-wider">{title}</h3>
         <div className="space-y-3 pl-1">{children}</div>
       </div>
     );
   }
 
   return (
-    <details className="group rounded-lg border border-gray-200 bg-gray-50/50" open={defaultOpen}>
+    <details className="group rounded-lg border border-border bg-surface-alt/50" open={defaultOpen}>
       <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between">
-        <span className="text-sm font-bold text-[#2d6a1e] uppercase tracking-wider">{title}</span>
-        <span className="text-gray-500 group-open:rotate-180 transition-transform">▾</span>
+        <span className="text-sm font-bold text--primary uppercase tracking-wider">{title}</span>
+        <span className="text-text-muted group-open:rotate-180 transition-transform">▾</span>
       </summary>
       <div className="space-y-3 px-4 pb-4">{children}</div>
     </details>
@@ -1313,10 +1313,10 @@ function Section({ title, children, collapsible = false, defaultOpen = false }: 
 
 function SubSection({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   return (
-    <details className="group rounded-lg border border-gray-200 bg-white" open={defaultOpen}>
-      <summary className="cursor-pointer list-none px-3 py-2 flex items-center justify-between hover:bg-gray-50 rounded-lg">
-        <span className="text-sm font-semibold text-gray-800">{title}</span>
-        <span className="text-gray-400 group-open:rotate-180 transition-transform">▾</span>
+    <details className="group rounded-lg border border-border bg-white" open={defaultOpen}>
+      <summary className="cursor-pointer list-none px-3 py-2 flex items-center justify-between hover:bg-surface-alt rounded-lg">
+        <span className="text-sm font-semibold text-text">{title}</span>
+        <span className="text-text-muted group-open:rotate-180 transition-transform">▾</span>
       </summary>
       <div className="px-3 pb-3 pt-1">{children}</div>
     </details>
@@ -1328,12 +1328,12 @@ function Field({ label, value, onChange, type = "text" }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-text-muted mb-1">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none"
+        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
       />
     </div>
   );
@@ -1364,19 +1364,19 @@ function HtmlField({ label, value, onChange, rows = 10 }: {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <label className="block text-xs font-medium text-gray-500">{label}</label>
-        <div className="flex bg-gray-100 rounded-lg p-0.5">
+        <label className="block text-xs font-medium text-text-muted">{label}</label>
+        <div className="flex bg-surface-alt rounded-lg p-0.5">
           <button
             type="button"
             onClick={() => setShowPreview(false)}
-            className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${!showPreview ? "bg-white shadow text-[#2d6a1e]" : "text-gray-600"}`}
+            className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${!showPreview ? "bg-white shadow text--primary" : "text-text"}`}
           >
             Bearbeiten
           </button>
           <button
             type="button"
             onClick={() => setShowPreview(true)}
-            className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${showPreview ? "bg-white shadow text-[#2d6a1e]" : "text-gray-600"}`}
+            className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${showPreview ? "bg-white shadow text--primary" : "text-text"}`}
           >
             Vorschau
           </button>
@@ -1400,11 +1400,11 @@ function HtmlField({ label, value, onChange, rows = 10 }: {
 
       {showPreview ? (
         <div
-          className="prose prose-green max-w-none text-gray-700 leading-relaxed border border-gray-300 rounded-lg p-4 min-h-40 max-h-[420px] overflow-y-auto bg-white
-            [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-4 [&_h1]:mb-3
-            [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-4 [&_h2]:mb-3
-            [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-[#2d6a1e] [&_h3]:mt-4 [&_h3]:mb-2
-            [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text-[#2d6a1e] [&_a]:underline"
+          className="prose prose-green max-w-none text-text leading-relaxed border border-border rounded-lg p-4 min-h-40 max-h-[420px] overflow-y-auto bg-white
+            [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:text-text [&_h1]:mt-4 [&_h1]:mb-3
+            [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-text [&_h2]:mt-4 [&_h2]:mb-3
+            [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mt-4 [&_h3]:mb-2
+            [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_a]:text--primary [&_a]:underline"
           dangerouslySetInnerHTML={{ __html: value || "<p><em>Kein Inhalt</em></p>" }}
         />
       ) : (
@@ -1413,7 +1413,7 @@ function HtmlField({ label, value, onChange, rows = 10 }: {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={rows}
-          className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#2d6a1e] focus:border-transparent outline-none font-mono ${warning ? "border-amber-400 bg-amber-50/30" : "border-gray-300"}`}
+          className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none font-mono ${warning ? "border-amber-400 bg-amber-50/30" : "border-border"}`}
         />
       )}
 
@@ -1432,7 +1432,7 @@ function HtmlFormatBtn({ label, icon, onClick }: { label: string; icon: IconDefi
     <button
       type="button"
       onClick={onClick}
-      className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-mono border border-gray-200 inline-flex items-center gap-1"
+      className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border inline-flex items-center gap-1"
       title={label}
     >
       <FontAwesomeIcon icon={icon} className="text-[11px]" />
@@ -1453,21 +1453,21 @@ function HtmlImagePickerButton({ onInsert }: { onInsert: (html: string) => void 
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(!open)} className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-mono border border-gray-200">🖼️ Bibliothek</button>
-      <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-mono border border-gray-200">⬆️ Upload</button>
+      <button type="button" onClick={() => setOpen(!open)} className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border">🖼️ Bibliothek</button>
+      <button type="button" onClick={() => fileRef.current?.click()} className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border">⬆️ Upload</button>
       {open && (
-        <div className="absolute z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-3 w-72 max-h-64 overflow-y-auto">
-          <p className="text-xs text-gray-500 mb-2 font-medium">Bild aus Bibliothek einfügen:</p>
+        <div className="absolute z-20 mt-1 bg-surface-card border border-border rounded-lg shadow-xl p-3 w-72 max-h-64 overflow-y-auto">
+          <p className="text-xs text-text-muted mb-2 font-medium">Bild aus Bibliothek einfügen:</p>
           {content.images?.length ? (
             <div className="grid grid-cols-3 gap-2">
               {content.images.map((img) => (
-                <button key={img.id} onClick={() => insertImage(img.dataUrl, img.name, img.copyright || "Privat")} className="rounded-lg overflow-hidden border-2 border-transparent hover:border-[#2d6a1e] transition-colors aspect-square">
+                <button key={img.id} onClick={() => insertImage(img.dataUrl, img.name, img.copyright || "Privat")} className="rounded-lg overflow-hidden border-2 border-transparent hover:border--primary transition-colors aspect-square">
                   <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
           ) : (
-            <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">Noch keine Bilder in der Bibliothek.</div>
+            <div className="text-xs text-text-muted bg-surface-alt border border-border rounded-lg px-3 py-2">Noch keine Bilder in der Bibliothek.</div>
           )}
         </div>
       )}
@@ -1544,9 +1544,9 @@ function DeployHelp() {
   return (
     <div className="space-y-6">
       {/* Overview */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-3">🌐 Website bereitstellen</h2>
-        <p className="text-gray-600 text-sm leading-relaxed mb-4">
+      <div className="bg-surface-card rounded-xl shadow-md p-6">
+        <h2 className="text-xl font-bold text-text mb-3">🌐 Website bereitstellen</h2>
+        <p className="text-text text-sm leading-relaxed mb-4">
           Die Website besteht aus einer einzigen HTML-Datei und kann überall kostenlos gehostet werden. 
           Da Ihre Domain bereits über Cloudflare verwaltet wird, ist <strong>Cloudflare Pages</strong> die passende Plattform.
         </p>
@@ -1561,30 +1561,30 @@ function DeployHelp() {
       </div>
 
       {/* Option A: Cloudflare Pages */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
         <button
           onClick={() => toggle("cloudflare")}
-          className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors text-left"
+          className="w-full flex items-center justify-between p-5 hover:bg-surface-alt transition-colors text-left"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-xl">☁️</div>
             <div>
-              <h3 className="font-bold text-gray-900">Option A: Cloudflare Pages</h3>
-              <p className="text-sm text-gray-500">Empfohlen — Kostenlos, automatisch, Ihre Domain ist bereits dort</p>
+              <h3 className="font-bold text-text">Option A: Cloudflare Pages</h3>
+              <p className="text-sm text-text-muted">Empfohlen — Kostenlos, automatisch, Ihre Domain ist bereits dort</p>
             </div>
           </div>
-          <svg className={`w-5 h-5 text-gray-400 transition-transform ${expanded === "cloudflare" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`w-5 h-5 text-text-muted transition-transform ${expanded === "cloudflare" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
         {expanded === "cloudflare" && (
-          <div className="px-5 pb-5 border-t border-gray-100 pt-4 space-y-5">
+          <div className="px-5 pb-5 border-t border-border pt-4 space-y-5">
             <Step number={1} title="Code auf GitHub hochladen">
               <p>Erstellen Sie einen kostenlosen Account auf <ExtLink href="https://github.com">github.com</ExtLink>.</p>
               <p>Erstellen Sie ein neues Repository (privat):</p>
               <ol className="list-decimal list-inside space-y-1 ml-2">
                 <li>Gehe zu <ExtLink href="https://github.com/new">github.com/new</ExtLink></li>
-                <li>Name: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">goldsteinfreunde-website</code></li>
+                <li>Name: <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">goldsteinfreunde-website</code></li>
                 <li>Sichtbarkeit: <strong>Private</strong></li>
                 <li>„Create repository" klicken</li>
               </ol>
@@ -1603,18 +1603,18 @@ git push -u origin main`}
                 <li>Einloggen im <ExtLink href="https://dash.cloudflare.com">Cloudflare Dashboard</ExtLink></li>
                 <li>Links auf <strong>Workers &amp; Pages</strong></li>
                 <li><strong>Create</strong> → <strong>Pages</strong> → <strong>Connect to Git</strong></li>
-                <li>GitHub autorisieren und Repository <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">goldsteinfreunde-website</code> auswählen</li>
+                <li>GitHub autorisieren und Repository <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">goldsteinfreunde-website</code> auswählen</li>
                 <li>Build-Einstellungen:
                   <ul className="list-disc list-inside ml-4 mt-1 text-sm">
-                    <li>Build command: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">npm run build</code></li>
-                    <li>Output directory: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">dist</code></li>
+                    <li>Build command: <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">npm run build</code></li>
+                    <li>Output directory: <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">dist</code></li>
                   </ul>
                 </li>
                 <li><strong>Save and Deploy</strong> klicken</li>
               </ol>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-text-muted mt-2">
                 ✅ Cloudflare baut die Website automatisch. Nach ca. 1 Minute ist sie unter 
-                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs ml-1">goldsteinfreunde-website.pages.dev</code> erreichbar.
+                <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs ml-1">goldsteinfreunde-website.pages.dev</code> erreichbar.
               </p>
             </Step>
 
@@ -1622,9 +1622,9 @@ git push -u origin main`}
               <ol className="list-decimal list-inside space-y-1.5">
                 <li>In Cloudflare Pages: Projekt öffnen → <strong>Custom domains</strong></li>
                 <li><strong>Set up a custom domain</strong> klicken</li>
-                <li><code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">goldsteinfreunde.de</code> eingeben</li>
+                <li><code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">goldsteinfreunde.de</code> eingeben</li>
                 <li>Cloudflare fügt den DNS-Eintrag automatisch hinzu (sofort aktiv)</li>
-                <li>Auch <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">www.goldsteinfreunde.de</code> hinzufügen</li>
+                <li>Auch <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">www.goldsteinfreunde.de</code> hinzufügen</li>
               </ol>
             </Step>
 
@@ -1632,9 +1632,9 @@ git push -u origin main`}
               <ol className="list-decimal list-inside space-y-1.5">
                 <li>Cloudflare Dashboard → <strong>Websites</strong> → <strong>goldsteinfreunde.de</strong> → <strong>DNS</strong></li>
                 <li>Alte A/CNAME-Einträge für die bisherige Website <strong>löschen</strong> oder deaktivieren</li>
-                <li>Behalten: die neuen CNAME-Einträge auf <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">*.pages.dev</code></li>
+                <li>Behalten: die neuen CNAME-Einträge auf <code className="bg-surface-alt px-1.5 py-0.5 rounded text-xs">*.pages.dev</code></li>
               </ol>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-text-muted mt-2">
                 📧 E-Mail-Einträge wie MX, SPF, DKIM oder DMARC bleiben unverändert bestehen.
               </p>
             </Step>
@@ -1651,14 +1651,14 @@ git push -u origin main`}
       </div>
 
       {/* Costs */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="font-bold text-gray-900 mb-3">💰 Kostenübersicht</h3>
+      <div className="bg-surface-card rounded-xl shadow-md p-6">
+        <h3 className="font-bold text-text mb-3">💰 Kostenübersicht</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 pr-4 text-gray-600 font-medium">Bestandteil</th>
-                <th className="text-left py-2 text-gray-600 font-medium">Kosten</th>
+              <tr className="border-b border-border">
+                <th className="text-left py-2 pr-4 text-text font-medium">Bestandteil</th>
+                <th className="text-left py-2 text-text font-medium">Kosten</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1673,9 +1673,9 @@ git push -u origin main`}
       </div>
 
       {/* Cloudflare Free Tier Limits */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="font-bold text-gray-900 mb-3">📏 Cloudflare Pages Free-Tier Limits</h3>
-        <p className="text-sm text-gray-600 mb-4">
+      <div className="bg-surface-card rounded-xl shadow-md p-6">
+        <h3 className="font-bold text-text mb-3">📏 Cloudflare Pages Free-Tier Limits</h3>
+        <p className="text-sm text-text mb-4">
           Für diese Website völlig ausreichend — hier die konkreten Zahlen:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1689,17 +1689,17 @@ git push -u origin main`}
             { label: "SSL-Zertifikate", value: "Inklusive", ok: true },
             { label: "GitHub Gist", value: "100 MB / Datei", ok: true, note: "(Inhalt + Bilder)" },
           ].map((item, i) => (
-            <div key={i} className="flex items-start gap-2 bg-gray-50 rounded-lg p-3">
+            <div key={i} className="flex items-start gap-2 bg-surface-alt rounded-lg p-3">
               <span className="text-green-500 mt-0.5">✓</span>
               <div>
-                <span className="text-sm font-medium text-gray-700">{item.label}: </span>
+                <span className="text-sm font-medium text-text">{item.label}: </span>
                 <span className="text-sm font-bold text-green-700">{item.value}</span>
-                {item.note && <p className="text-xs text-gray-400 mt-0.5">{item.note}</p>}
+                {item.note && <p className="text-xs text-text-muted mt-0.5">{item.note}</p>}
               </div>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-4">
+        <p className="text-xs text-text-muted mt-4">
           Fazit: Eine Vereinswebsite mit ~20 Artikeln und ~30 Fotos pro Jahr beansprucht geschätzt weniger als 1 % der Limits.
         </p>
       </div>
@@ -1710,12 +1710,12 @@ git push -u origin main`}
 function Step({ number, title, children }: { number: number; title: string; children: ReactNode }) {
   return (
     <div className="flex gap-3">
-      <div className="w-7 h-7 bg-[#2d6a1e] text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+      <div className="w-7 h-7 bg--primary text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
         {number}
       </div>
       <div>
-        <h4 className="font-bold text-gray-900 mb-2">{title}</h4>
-        <div className="text-sm text-gray-700 space-y-2 leading-relaxed">{children}</div>
+        <h4 className="font-bold text-text mb-2">{title}</h4>
+        <div className="text-sm text-text space-y-2 leading-relaxed">{children}</div>
       </div>
     </div>
   );
@@ -1723,7 +1723,7 @@ function Step({ number, title, children }: { number: number; title: string; chil
 
 function ExtLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="text-[#2d6a1e] underline hover:no-underline font-medium">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text--primary underline hover:no-underline font-medium">
       {children}
     </a>
   );
