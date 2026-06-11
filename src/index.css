@@ -124,3 +124,50 @@ a {
   --color-border: #374151;
   --color-border-strong: #4b5563;
 }
+
+/* Collapsible animation */
+.gf-collapsible {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+}
+.gf-collapsible[open] {
+  grid-template-rows: auto 1fr;
+}
+.gf-collapsible > :last-child {
+  overflow: hidden;
+}
+
+/* Accordion styling */
+.gf-accordion {
+  border-top: 1px solid var(--color-border);
+}
+.gf-accordion-item {
+  border-bottom: 1px solid var(--color-border);
+}
+.gf-accordion-item summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  list-style: none;
+}
+.gf-accordion-item summary::-webkit-details-marker {
+  display: none;
+}
+.gf-accordion-item summary::marker {
+  display: none;
+  content: "";
+}
+.gf-accordion-item summary .chevron {
+  display: inline-block;
+  transition: transform 0.3s ease-out;
+  margin-right: 0.5rem;
+  color: var(--color-primary);
+}
+.gf-accordion-item[open] summary .chevron {
+  transform: rotate(90deg);
+}
+.gf-accordion-item > :last-child {
+  overflow: hidden;
+  transition: grid-template-rows 0.3s ease-out;
+}

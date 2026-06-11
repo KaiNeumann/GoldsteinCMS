@@ -8,6 +8,7 @@
 type Enhancer = (root: HTMLElement) => void;
 
 const enhancers: Enhancer[] = [];
+const cleanupCallbacks: Map<HTMLElement, (() => void)[]> = new Map();
 
 export function registerEnhancer(enhancer: Enhancer) {
   enhancers.push(enhancer);
@@ -17,6 +18,21 @@ export function enhanceCmsContent(root: HTMLElement) {
   for (const enhancer of enhancers) {
     enhancer(root);
   }
+}
+
+export function cleanupCmsContent(root: HTMLElement) {
+  const callbacks = cleanupCallbacks.get(root);
+  if (callbacks) {
+    callbacks.forEach((callback) => callback());
+    cleanupCallbacks.delete(root);
+  }
+}
+
+function addCleanupCallback(root: HTMLElement, callback: () => void) {
+  if (!cleanupCallbacks.has(root)) {
+    cleanupCallbacks.set(root, []);
+  }
+  cleanupCallbacks.get(root)!.push(callback);
 }
 
 // Lightbox enhancer
@@ -37,13 +53,23 @@ function enhanceLightbox(root: HTMLElement) {
     }
   });
 
+  const clickHandlers: { figure: HTMLElement; handler: () => void }[] = [];
   figures.forEach((figure, index) => {
     const img = figure.querySelector("img");
     if (!img) return;
 
     (figure as HTMLElement).style.cursor = "zoom-in";
-    figure.addEventListener("click", () => {
+    const handler = () => {
       openLightbox(images, index);
+    };
+    figure.addEventListener("click", handler);
+    clickHandlers.push({ figure: figure as HTMLElement, handler });
+  });
+
+  addCleanupCallback(root, () => {
+    clickHandlers.forEach(({ figure, handler }) => {
+      figure.removeEventListener("click", handler);
+      figure.style.cursor = "";
     });
   });
 }
@@ -53,16 +79,17 @@ function openLightbox(
   startIndex: number
 ) {
   let currentIndex = startIndex;
+  let isAnimating = false;
 
   const overlay = document.createElement("div");
   overlay.className =
-    "fixed inset-0 z-50 bg-black/90 flex items-center justify-center";
+    "fixed inset-0 z-50 bg-black/90 flex items-center justify-center opacity-0 transition-opacity duration-300";
 
   const content = document.createElement("div");
   content.className = "relative max-w-4xl max-h-[90vh] mx-4";
 
   const img = document.createElement("img");
-  img.className = "max-h-[80vh] mx-auto rounded-lg object-contain";
+  img.className = "max-h-[80vh] mx-auto rounded-lg object-contain transition-opacity duration-200";
 
   const caption = document.createElement("div");
   caption.className = "text-white text-center mt-4 text-sm opacity-80";
@@ -88,30 +115,89 @@ function openLightbox(
   const counter = document.createElement("div");
   counter.className = "absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm";
 
+  // Touch swipe support
+  let touchStartX = 0;
+  let touchEndX = 0;
+  const minSwipeDistance = 50;
+
   function updateImage() {
     const item = images[currentIndex];
-    img.src = item.src;
-    img.alt = item.alt;
-    caption.textContent = item.caption;
-    counter.textContent = `${currentIndex + 1} / ${images.length}`;
-    prevBtn.style.display = images.length > 1 ? "flex" : "none";
-    nextBtn.style.display = images.length > 1 ? "flex" : "none";
+    img.style.opacity = "0";
+
+    setTimeout(() => {
+      img.src = item.src;
+      img.alt = item.alt;
+      caption.textContent = item.caption;
+      counter.textContent = `${currentIndex + 1} / ${images.length}`;
+      prevBtn.style.display = images.length > 1 ? "flex" : "none";
+      nextBtn.style.display = images.length > 1 ? "flex" : "none";
+      img.style.opacity = "1";
+    }, 200);
+  }
+
+  function preloadAdjacentImages() {
+    if (currentIndex > 0) {
+      const prevImg = new Image();
+      prevImg.src = images[currentIndex - 1].src;
+    }
+    if (currentIndex < images.length - 1) {
+      const nextImg = new Image();
+      nextImg.src = images[currentIndex + 1].src;
+    }
   }
 
   function close() {
-    overlay.remove();
-    document.removeEventListener("keydown", handleKeydown);
+    if (isAnimating) return;
+    isAnimating = true;
+
+    overlay.style.opacity = "0";
+    setTimeout(() => {
+      overlay.remove();
+      document.removeEventListener("keydown", handleKeydown);
+      document.body.style.overflow = "";
+    }, 300);
   }
 
   function handleKeydown(e: KeyboardEvent) {
+    if (isAnimating) return;
+
     if (e.key === "Escape") close();
     if (e.key === "ArrowLeft" && currentIndex > 0) {
       currentIndex--;
       updateImage();
+      preloadAdjacentImages();
     }
     if (e.key === "ArrowRight" && currentIndex < images.length - 1) {
       currentIndex++;
       updateImage();
+      preloadAdjacentImages();
+    }
+  }
+
+  function handleTouchStart(e: TouchEvent) {
+    touchStartX = e.changedTouches[0].screenX;
+  }
+
+  function handleTouchMove(e: TouchEvent) {
+    e.preventDefault();
+  }
+
+  function handleTouchEnd(e: TouchEvent) {
+    if (isAnimating) return;
+
+    touchEndX = e.changedTouches[0].screenX;
+    const swipeDistance = touchEndX - touchStartX;
+
+    if (Math.abs(swipeDistance) >= minSwipeDistance) {
+      if (swipeDistance > 0 && currentIndex > 0) {
+        currentIndex--;
+        updateImage();
+        preloadAdjacentImages();
+      } else if (swipeDistance < 0 && currentIndex < images.length - 1) {
+        currentIndex++;
+        updateImage();
+        preloadAdjacentImages();
+      }
     }
   }
 
@@ -124,6 +210,7 @@ function openLightbox(
     if (currentIndex > 0) {
       currentIndex--;
       updateImage();
+      preloadAdjacentImages();
     }
   });
   nextBtn.addEventListener("click", (e) => {
@@ -131,15 +218,26 @@ function openLightbox(
     if (currentIndex < images.length - 1) {
       currentIndex++;
       updateImage();
+      preloadAdjacentImages();
     }
   });
+
+  overlay.addEventListener("touchstart", handleTouchStart, { passive: true });
+  overlay.addEventListener("touchmove", handleTouchMove, { passive: false });
+  overlay.addEventListener("touchend", handleTouchEnd, { passive: true });
 
   content.append(img, caption, closeBtn, prevBtn, nextBtn, counter);
   overlay.append(content);
   document.body.append(overlay);
+  document.body.style.overflow = "hidden";
+
+  requestAnimationFrame(() => {
+    overlay.style.opacity = "1";
+  });
 
   document.addEventListener("keydown", handleKeydown);
   updateImage();
+  preloadAdjacentImages();
 }
 
 // Slider enhancer
@@ -265,7 +363,7 @@ function enhanceGallery(root: HTMLElement) {
 
 // Collapsible enhancer
 function enhanceCollapsible(root: HTMLElement) {
-  const collapsibles = root.querySelectorAll("details.gf-collapsible");
+  const collapsibles = root.querySelectorAll("details.gf-collapsible") as NodeListOf<HTMLDetailsElement>;
   collapsibles.forEach((details) => {
     const summary = details.querySelector("summary");
     if (!summary) return;
@@ -276,8 +374,17 @@ function enhanceCollapsible(root: HTMLElement) {
     chevron.innerHTML = "&#9656;";
     summary.prepend(chevron);
 
-    details.addEventListener("toggle", () => {
+    const toggleHandler = () => {
       chevron.style.transform = details.open ? "rotate(90deg)" : "rotate(0)";
+    };
+
+    details.addEventListener("toggle", toggleHandler);
+
+    addCleanupCallback(root, () => {
+      details.removeEventListener("toggle", toggleHandler);
+      if (summary.contains(chevron)) {
+        summary.removeChild(chevron);
+      }
     });
   });
 }
@@ -286,14 +393,24 @@ function enhanceCollapsible(root: HTMLElement) {
 function enhanceAccordion(root: HTMLElement) {
   const accordions = root.querySelectorAll(".gf-accordion");
   accordions.forEach((container) => {
-    const details = container.querySelectorAll("details.gf-accordion-item");
+    const details = container.querySelectorAll("details.gf-accordion-item") as NodeListOf<HTMLDetailsElement>;
+    const toggleHandlers: { details: HTMLDetailsElement; handler: () => void }[] = [];
+
     details.forEach((item) => {
-      item.addEventListener("toggle", () => {
+      const handler = () => {
         if (item.open) {
           details.forEach((other) => {
             if (other !== item) other.removeAttribute("open");
           });
         }
+      };
+      item.addEventListener("toggle", handler);
+      toggleHandlers.push({ details: item, handler });
+    });
+
+    addCleanupCallback(root, () => {
+      toggleHandlers.forEach(({ details: item, handler }) => {
+        item.removeEventListener("toggle", handler);
       });
     });
   });
@@ -331,6 +448,19 @@ function enhanceCallout(root: HTMLElement) {
     icon.className = "mr-2 text-lg";
     icon.innerHTML = icons[type] || icons.info;
     callout.prepend(icon);
+
+    addCleanupCallback(root, () => {
+      if (callout.contains(icon)) {
+        callout.removeChild(icon);
+        callout.classList.remove(
+          "border-l-4",
+          "rounded-r-lg",
+          "p-4",
+          "my-4",
+          ...(colors[type] || colors.info).split(" ")
+        );
+      }
+    });
   });
 }
 
