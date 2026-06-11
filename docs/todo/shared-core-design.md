@@ -305,7 +305,105 @@ git commit -m "chore: update core to v1.3.0"
 git push
 ```
 
-### 5.8 Customer-Owned Repos
+### 5.8 Automated Update PRs
+
+When managing customer repos yourself, automated update PRs provide CI validation and audit trails without manual scripting.
+
+#### How It Works
+
+```text
+1. You release core v1.3.0 (tag + release notes)
+        │
+2. Dependabot detects new tag (daily check)
+        │
+3. PR opened in each customer repo:
+   - customer-a: "Update core to v1.3.0"
+   - customer-b: "Update core to v1.3.0"
+   - customer-c: "Update core to v1.3.0"
+        │
+4. CI runs on each PR (build + smoke tests)
+        │
+5. You review and merge
+        │
+6. Cloudflare Pages auto-deploys per customer
+```
+
+#### Dependabot Configuration
+
+Create `.github/dependabot.yml` in each customer repo:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "core-update"
+    commit-message:
+      prefix: "chore"
+```
+
+#### Why Dependabot Over Manual Scripts
+
+| Manual Script | Dependabot |
+|---------------|------------|
+| You remember to run it | Runs automatically |
+| No CI check on PR | Build + tests run before merge |
+| No audit trail | PR history shows what changed when |
+| Easy to skip | PR sitting there reminds you |
+| No review step | You review before merging |
+
+The CI check is the real value. The PR tells you "this update will break customer B's build" before you merge it.
+
+#### Your Release Process
+
+```bash
+# 1. Make changes in goldstein-core
+git checkout -b feature/new-widget
+# ... implement ...
+git commit -m "feat: add callout widget"
+
+# 2. Merge and tag
+git checkout main
+git merge feature/new-widget
+git tag -a v1.3.0 -m "Add callout widget, fix dark mode colors"
+git push origin main --tags
+
+# 3. Release notes (GitHub Releases)
+# Describe what changed, any breaking changes, migration steps
+
+# 4. Dependabot handles the rest
+# PRs appear in customer repos automatically
+```
+
+#### Semantic Versioning Strategy
+
+| Change | Tag | Example |
+|--------|-----|---------|
+| Bug fix | `v1.2.1` | Fix XSS in sanitizer |
+| Feature | `v1.3.0` | Add callout widget |
+| Breaking | `v2.0.0` | Change `site.json` schema |
+
+For major versions, the bot still opens PRs, but release notes clearly state "Breaking: migration required."
+
+#### Key Design Decisions
+
+| Decision | Recommendation | Why |
+|----------|----------------|-----|
+| **Automerge?** | No | Review before deploying to customers |
+| **Which version to pin?** | Exact tag (`v1.3.0`) | Submodule should be deterministic |
+| **PR frequency** | Daily check | Low volume, no spam |
+| **Breaking changes** | Major tag (`v2.0.0`) | Customers can ignore minor/patch if busy |
+| **Release notes** | Required | Need to know what changed |
+
+#### Cost
+
+- **Dependabot:** Free on GitHub
+- **Your time:** Tag a release, write notes — 5 minutes per update
+
+### 5.9 Customer-Owned Repos
 
 When a customer wants the code in their own GitHub organization:
 
@@ -333,7 +431,7 @@ git clone https://github.com/customer-org/website.git
 | Customer removes your copyright/license | Violation — enforceable |
 | Customer revokes your repo access | You lose write access, license survives |
 
-### 5.9 Migration from Pure Forks
+### 5.10 Migration from Pure Forks
 
 For existing forked customers, migrate incrementally:
 
@@ -351,7 +449,7 @@ git commit -m "refactor: migrate to shared core submodule"
 
 This can be done one customer at a time, with no rush.
 
-### 5.10 File Changes Summary
+### 5.11 File Changes Summary
 
 | File | Action | Description |
 |---|---|---|
@@ -361,7 +459,7 @@ This can be done one customer at a time, with no rush.
 
 **Lines of code estimate:** ~150 lines across 3 new files (documentation + templates).
 
-### 5.11 What Does NOT Change
+### 5.12 What Does NOT Change
 
 - **Existing forks continue to work** — migration is optional and incremental
 - **Admin panel** — unchanged
@@ -369,14 +467,13 @@ This can be done one customer at a time, with no rush.
 - **Build system** — unchanged (Vite still builds from customer repo)
 - **Deployment** — unchanged (Cloudflare Pages still auto-deploys from customer repo)
 
-### 5.12 Future Extensions
+### 5.13 Future Extensions
 
 | Extension | Depends On | Complexity |
 |---|---|---|
-| Automated update PRs (Dependabot-style) | Option D | Low |
-| Update validation CI (test core update before merge) | Option D | Medium |
 | Core version dashboard (see which customers are on which version) | Option D | Low |
 | npm package fallback (for customers who prefer npm over git submodules) | Option C | Medium |
+| Renovate for more granular update control | Option D | Low |
 
 ---
 
