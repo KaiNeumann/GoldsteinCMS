@@ -122,4 +122,6 @@ GoldsteinCMS/
 
 ## License
 
-Private project. All rights reserved.
+Licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0-or-later).
+
+This means you can use, modify, and distribute this software, but any network use must provide recipients access to the complete source code. See the LICENSE file for full terms.

@@ -1,0 +1,71 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2026 Kai Uwe Neumann
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+# Additional Terms (Section 7 of AGPL-3.0)
+
+## Section 7 - Additional Terms
+
+### 7.1 Application of Additional Terms
+
+The following additional terms apply to your use, reproduction, and
+distribution of the Program:
+
+a) **Source Code Availability**: Any network use of this Program must
+   provide recipients access to the complete Corresponding Source of the
+   Program as defined by AGPL-3.0 Section 1.
+
+b) **Attribution**: All copies of the Program and derivative works must
+   retain the original copyright notice, this license text, and the
+   notice that the Program is licensed under the GNU Affero General
+   Public License.
+
+c) **No Trademark Rights**: This license does not grant permission to
+   use the trade names, trademarks, service marks, or product names of
+   the licensor, except as required for reasonable and customary use in
+   describing the origin of the Program.
+
+## Section 13 - Network Use
+
+For the avoidance of doubt, Section 13 of the GNU Affero General Public
+License (remote network interaction) applies. If you modify the Program
+or a derivative work thereof and convey the modified version to users
+over a network:
+
+a) You must offer access to the Corresponding Source of the modified
+   version from a network server at no charge.
+
+b) You must inform users that the Corresponding Source is available at
+   no charge.
+
+c) You must keep the Corresponding Source available for as long as you
+   offer the modified version over the network.
+
+---
+
+# Full License Text
+
+See https://www.gnu.org/licenses/agpl-3.0.html for the complete
+GNU Affero General Public License version 3 text.
+
+---
+
+# SPDX License Identifier
+
+SPDX-License-Identifier: AGPL-3.0-or-later
