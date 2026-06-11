@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://goldsteinfreundewebsite.pages.dev/sitemap.xml
