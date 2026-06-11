@@ -14,6 +14,7 @@ import { useContent } from "../context/ContentContext";
 import { defaultContent, formatDate } from "../content/defaultContent";
 import type { Post, SiteConfig, SiteImage } from "../content/defaultContent";
 import CmsContent from "../components/CmsContent";
+import ComponentBuilder from "../components/ComponentBuilder";
 
 // ─── Main Admin Component ────────────────────────────────
 
@@ -251,6 +252,7 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
   const isNew = !post?.id;
   const [form, setForm] = useState<Post>(post || { id: "", date: new Date().toISOString().split("T")[0], author: "", title: "", content: "" });
   const [showPreview, setShowPreview] = useState(false);
+  const [showBuilder, setShowBuilder] = useState(false);
 
   const handleSave = () => {
     if (!form.title.trim()) { alert("Bitte einen Titel eingeben."); return; }
@@ -258,6 +260,12 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
     const id = form.id || form.title.toLowerCase().replace(/[^a-zäöüß0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + form.date;
     savePost({ ...form, id });
     onSaved();
+  };
+
+  const insertHtml = (html: string) => {
+    const ta = document.getElementById("post-content") as HTMLTextAreaElement | null;
+    const pos = ta?.selectionStart ?? form.content.length;
+    setForm({ ...form, content: form.content.substring(0, pos) + html + form.content.substring(pos) });
   };
 
   return (
@@ -346,6 +354,14 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
                 <FormatBtn label="Liste" icon={faListUl} before="<ul>\n<li>" after="</li>\n</ul>" form={form} setForm={setForm} textareaId="post-content" />
                 <FormatBtn label="Link" icon={faLink} before='<a href="URL">' after="</a>" form={form} setForm={setForm} textareaId="post-content" />
                 <ImagePickerButton form={form} setForm={setForm} textareaId="post-content" />
+                <button
+                  type="button"
+                  onClick={() => setShowBuilder(true)}
+                  className="px-2.5 py-1 text-xs bg-surface-alt text-text rounded-md hover:bg-border transition-colors font-mono border border-border"
+                  title="Baustein einfügen"
+                >
+                  🧩 Baustein
+                </button>
               </div>
               <textarea
                 id="post-content"
@@ -372,6 +388,7 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
           </button>
         </div>
       </div>
+      <ComponentBuilder open={showBuilder} onClose={() => setShowBuilder(false)} onInsert={insertHtml} />
     </div>
   );
 }
