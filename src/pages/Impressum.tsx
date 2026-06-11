@@ -1,4 +1,4 @@
-import { useContent } from "../context/ContentContext";
+﻿import { useContent } from "../context/ContentContext";
 
 export default function Impressum() {
   const { content } = useContent();
@@ -6,19 +6,19 @@ export default function Impressum() {
 
   return (
     <div>
-      <div className="bg-gradient-to-r from-[#2d6a1e] to-[#4a8c34] rounded-t-xl p-6 md:p-8">
+      <div className="bg-gradient-to-r from--primary to--primary-light rounded-t-xl p-6 md:p-8">
         <h1 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
           Impressum
         </h1>
       </div>
 
       <div
-        className="bg-white rounded-b-xl shadow-md p-6 md:p-8 prose prose-green max-w-none text-gray-700 leading-relaxed
-          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-6 [&_h2]:mb-3
-          [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-gray-800 [&_h3]:mt-5 [&_h3]:mb-2
+        className="bg-surface-card rounded-b-xl shadow-md p-6 md:p-8 prose prose-green max-w-none text-text leading-relaxed
+          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-text [&_h2]:mt-6 [&_h2]:mb-3
+          [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-text [&_h3]:mt-5 [&_h3]:mb-2
           [&_p]:mb-4
           [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4
-          [&_a]:text-[#2d6a1e] [&_a]:underline"
+          [&_a]:text--primary [&_a]:underline"
         dangerouslySetInnerHTML={{ __html: cfg.pageContent.impressumHtml }}
       />
     </div>

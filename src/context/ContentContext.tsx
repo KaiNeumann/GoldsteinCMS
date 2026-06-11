@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useContext,
   useState,
@@ -234,9 +234,9 @@ export function ContentProvider({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl shadow-md p-6 text-center text-gray-600">
-          <p className="font-semibold text-[#2d6a1e]">Goldsteinfreunde</p>
+      <div className="min-h-screen bg-surface-alt flex items-center justify-center px-4">
+        <div className="bg-surface-card rounded-xl shadow-md p-6 text-center text-text">
+          <p className="font-semibold text--primary">Goldsteinfreunde</p>
           <p className="text-sm mt-1">Inhalte werden geladen...</p>
         </div>
       </div>
@@ -245,10 +245,10 @@ export function ContentProvider({ children }: { children: ReactNode }) {
 
   if (loadError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl shadow-md p-6 max-w-md text-center">
+      <div className="min-h-screen bg-surface-alt flex items-center justify-center px-4">
+        <div className="bg-surface-card rounded-xl shadow-md p-6 max-w-md text-center">
           <p className="font-semibold text-red-700">Inhalte konnten nicht geladen werden.</p>
-          <p className="text-sm text-gray-600 mt-2">Bitte versuchen Sie es später erneut.</p>
+          <p className="text-sm text-text mt-2">Bitte versuchen Sie es später erneut.</p>
         </div>
       </div>
     );

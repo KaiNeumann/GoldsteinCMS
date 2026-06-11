@@ -1,13 +1,11 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { ContentProvider } from "./context/ContentContext";
 import Layout from "./components/Layout";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Activities from "./pages/Activities";
-import Huettennutzung from "./pages/Huettennutzung";
-import Impressum from "./pages/Impressum";
-import Datenschutz from "./pages/Datenschutz";
-import Admin from "./pages/Admin";
+import { site } from "./siteConfig";
+import { pageRegistry } from "./pageRegistry";
+import { initTheme } from "./components/ThemeToggle";
+
+initTheme();
 
 export default function App() {
   return (
@@ -15,14 +13,13 @@ export default function App() {
       <HashRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/ueber-uns" element={<About />} />
-            <Route path="/aktivitaeten" element={<Activities />} />
-            <Route path="/huettennutzung" element={<Huettennutzung />} />
-            <Route path="/impressum" element={<Impressum />} />
-            <Route path="/datenschutz" element={<Datenschutz />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<Home />} />
+            {Object.entries(site.pages).map(([path, { component }]) => {
+              const Component = pageRegistry[component];
+              return Component ? (
+                <Route key={path} path={path} element={<Component />} />
+              ) : null;
+            })}
+            <Route path="*" element={pageRegistry.Home ? <pageRegistry.Home /> : null} />
           </Routes>
         </Layout>
       </HashRouter>

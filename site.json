@@ -1,0 +1,31 @@
+{
+  "navigation": [
+    { "label": "Startseite", "path": "/" },
+    { "label": "Über uns", "path": "/ueber-uns" },
+    { "label": "Aktivitäten", "path": "/aktivitaeten" },
+    { "label": "Hüttennutzung", "path": "/huettennutzung" },
+    { "label": "Impressum", "path": "/impressum" },
+    { "label": "Datenschutz", "path": "/datenschutz" }
+  ],
+  "sidebar": ["contact", "bankAccount", "quickInfo"],
+  "footer": {
+    "columns": ["brand", "navigation", "contact"],
+    "credit": "Website & CMS: Kai Uwe Neumann",
+    "showAdminLink": true
+  },
+  "homeBlocks": ["welcome", "latestPost", "olderPosts"],
+  "hero": {
+    "headline": "Willkommen im Goldsteinpark",
+    "subtitle": "Gemeinsam für Natur und Umwelt in Bad Nauheim",
+    "showTrees": true
+  },
+  "pages": {
+    "/": { "component": "Home", "title": "Startseite" },
+    "/ueber-uns": { "component": "About", "title": "Über uns" },
+    "/aktivitaeten": { "component": "Activities", "title": "Aktivitäten" },
+    "/huettennutzung": { "component": "Huettennutzung", "title": "Hüttennutzung" },
+    "/impressum": { "component": "Impressum", "title": "Impressum" },
+    "/datenschutz": { "component": "Datenschutz", "title": "Datenschutz" },
+    "/admin": { "component": "Admin", "title": "Admin" }
+  }
+}
