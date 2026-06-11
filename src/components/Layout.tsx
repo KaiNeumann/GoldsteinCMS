@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useContent } from "../context/ContentContext";
+import ThemeToggle from "./ThemeToggle";
 
 const navigation = [
   { label: "Startseite", path: "/" },
@@ -24,9 +25,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-surface-alt">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#1a4d0f] via-[#2d6a1e] to-[#1a4d0f] text-white shadow-lg">
+      <header className="bg-gradient-to-br from--primary-dark via--primary to--primary-dark text-white shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <Link to="/" onClick={scrollToTop} className="flex items-center gap-4 no-underline">
@@ -42,21 +43,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
             </Link>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
-              aria-label="Menü öffnen"
-            >
-              {mobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+                aria-label="Menü öffnen"
+              >
+                {mobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -95,6 +99,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     {item.label}
                   </Link>
                 ))}
+                <div className="px-4 py-2">
+                  <ThemeToggle />
+                </div>
               </div>
             )}
           </div>
@@ -103,7 +110,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Hero Banner */}
       {location.pathname === "/" && (
-        <div className="relative h-48 md:h-64 lg:h-80 overflow-hidden bg-gradient-to-br from-[#2d6a1e] to-[#1a4d0f]">
+        <div className="relative h-48 md:h-64 lg:h-80 overflow-hidden bg-gradient-to-br from--primary to--primary-dark">
           {/* Background image or default gradient */}
           {cfg.bannerImage ? (
             <div className="absolute inset-0">
@@ -163,32 +170,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <aside className="lg:w-72 flex-shrink-0">
                 <div className="space-y-6">
                   {/* Contact Widget */}
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div className="bg-[#2d6a1e] px-5 py-3">
+                  <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+                    <div className="bg--primary px-5 py-3">
                       <h3 className="text-white font-bold text-sm uppercase tracking-wider">Kontakt</h3>
                     </div>
-                    <div className="p-5 text-sm text-gray-700 space-y-3">
+                    <div className="p-5 text-sm text-text space-y-3">
                       <div className="flex items-start gap-2">
-                        <svg className="w-4 h-4 text-[#2d6a1e] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text--primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        <a href={`mailto:${cfg.email}`} className="text-[#2d6a1e] hover:underline break-all">
+                        <a href={`mailto:${cfg.email}`} className="text--primary hover:underline break-all">
                           {cfg.email}
                         </a>
                       </div>
                       <div className="flex items-start gap-2">
-                        <svg className="w-4 h-4 text-[#2d6a1e] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text--primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                         <div>
-                          <a href={`tel:${cfg.phone.replace(/\s/g, '')}`} className="text-[#2d6a1e] hover:underline">
+                          <a href={`tel:${cfg.phone.replace(/\s/g, '')}`} className="text--primary hover:underline">
                             {cfg.phone}
                           </a>
-                          <span className="text-gray-500 text-xs block">({cfg.phoneNote})</span>
+                          <span className="text-text-muted text-xs block">({cfg.phoneNote})</span>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
-                        <svg className="w-4 h-4 text-[#2d6a1e] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text--primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
@@ -201,49 +208,49 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </div>
 
                   {/* Bank Account Widget */}
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div className="bg-[#2d6a1e] px-5 py-3">
+                  <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+                    <div className="bg--primary px-5 py-3">
                       <h3 className="text-white font-bold text-sm uppercase tracking-wider">Spendenkonto</h3>
                     </div>
-                    <div className="p-5 text-sm text-gray-700 space-y-1.5">
+                    <div className="p-5 text-sm text-text space-y-1.5">
                       <p className="font-semibold">{cfg.bankAccount.bank}</p>
                       <p>Kto. Nr.: {cfg.bankAccount.accountNumber}</p>
                       <p>BLZ: {cfg.bankAccount.blz}</p>
-                      <p className="text-xs text-gray-500 mt-2">IBAN: {cfg.bankAccount.iban}</p>
-                      <p className="text-xs text-gray-500">BIC: {cfg.bankAccount.bic}</p>
+                      <p className="text-xs text-text-muted mt-2">IBAN: {cfg.bankAccount.iban}</p>
+                      <p className="text-xs text-text-muted">BIC: {cfg.bankAccount.bic}</p>
                     </div>
                   </div>
 
                   {/* Quick Info Widget */}
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div className="bg-[#2d6a1e] px-5 py-3">
+                  <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
+                    <div className="bg--primary px-5 py-3">
                       <h3 className="text-white font-bold text-sm uppercase tracking-wider">Verein</h3>
                     </div>
                     <div className="p-5 text-sm">
                       <ul className="space-y-2">
-                        <li className="flex items-center gap-2 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-[#4a8c34] rounded-full flex-shrink-0"></span>
+                        <li className="flex items-center gap-2 text-text">
+                          <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
                           Gegründet {cfg.founded}
                         </li>
-                        <li className="flex items-center gap-2 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-[#4a8c34] rounded-full flex-shrink-0"></span>
+                        <li className="flex items-center gap-2 text-text">
+                          <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
                           {cfg.members} Mitglieder
                         </li>
-                        <li className="flex items-center gap-2 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-[#4a8c34] rounded-full flex-shrink-0"></span>
+                        <li className="flex items-center gap-2 text-text">
+                          <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
                           Gemeinnützig anerkannt
                         </li>
-                        <li className="flex items-center gap-2 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-[#4a8c34] rounded-full flex-shrink-0"></span>
+                        <li className="flex items-center gap-2 text-text">
+                          <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
                           {cfg.registry.court}, {cfg.registry.number}
                         </li>
-                        <li className="flex items-center gap-2 text-gray-700">
-                          <span className="w-1.5 h-1.5 bg-[#4a8c34] rounded-full flex-shrink-0"></span>
+                        <li className="flex items-center gap-2 text-text">
+                          <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
                           <a
                             href="http://goldsteinfreunde.de/wp-content/uploads/2024/07/Mitgliedsantrag-Goldsteinfreunde-neu2024.pdf"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#2d6a1e] hover:underline text-sm font-medium"
+                            className="text--primary hover:underline text-sm font-medium"
                           >
                             Mitgliedsantrag (PDF)
                           </a>
@@ -259,7 +266,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-[#1a4d0f] via-[#2d6a1e] to-[#1a4d0f] text-white">
+      <footer className="bg-gradient-to-br from--primary-dark via--primary to--primary-dark text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>

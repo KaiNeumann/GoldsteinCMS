@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+﻿import { HashRouter, Routes, Route } from "react-router-dom";
 import { ContentProvider } from "./context/ContentContext";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
@@ -8,6 +8,9 @@ import Huettennutzung from "./pages/Huettennutzung";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import Admin from "./pages/Admin";
+import { initTheme } from "./components/ThemeToggle";
+
+initTheme();
 
 export default function App() {
   return (
