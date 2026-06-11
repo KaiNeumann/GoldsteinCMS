@@ -188,11 +188,11 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 
 ---
 
-### Phase 5: Shared Core Architecture ⬜
+### Phase 5: Shared Core Architecture ✅
 **Duration:** 2-3 days
 **Risk:** Medium (structural refactoring, deployment changes)
 **Dependencies:** Phases 1-3 complete (Phase 4 optional)
-**Status:** ⬜ Pending (design documented in `docs/todo/shared-core-design.md`)
+**Status:** ✅ Complete
 
 #### Goals
 - Extract shared code into a separate `goldstein-core` repository
@@ -202,24 +202,24 @@ This plan details the migration of the GoldsteinfreundeWebsite (a single-purpose
 
 #### Deliverables
 
-| # | Task | File(s) | Est. Lines |
-|---|------|---------|------------|
-| 5.1 | Create `goldstein-core` repo with shared code | New repo | ~500 |
-| 5.2 | Create `templates/site.json.example` | `templates/site.json.example` | ~40 |
-| 5.3 | Create `templates/package.json.example` | `templates/package.json.example` | ~30 |
-| 5.4 | Document core/custom boundary | `docs/todo/shared-core-design.md` | Done |
-| 5.5 | Create customer onboarding script | `scripts/onboard.sh` | ~50 |
-| 5.6 | Test submodule update workflow | Manual | — |
-| 5.7 | Migrate existing customer (if any) | Per customer | ~30 |
+| # | Task | File(s) | Est. Lines | Status |
+|---|------|---------|------------|--------|
+| 5.1 | Create `goldstein-core` repo with shared code | New repo | ~500 | ⬜ Future |
+| 5.2 | Create `templates/site.json.example` | `templates/site.json.example` | ~40 | ✅ |
+| 5.3 | Create `templates/package.json.example` | `templates/package.json.example` | ~30 | ✅ |
+| 5.4 | Document core/custom boundary | `docs/todo/shared-core-design.md` | Done | ✅ |
+| 5.5 | Create customer onboarding script | `scripts/onboard.sh` | ~150 | ✅ |
+| 5.6 | Test submodule update workflow | Manual | — | ⬜ Future |
+| 5.7 | Migrate existing customer (if any) | Per customer | ~30 | ⬜ Future |
 
 #### Verification Checklist
-- [ ] Core repo contains all shared components, context, functions, types
-- [ ] Customer repo can import from core submodule
-- [ ] Submodule pinned to version tag works correctly
-- [ ] Customer-specific pages work alongside core
-- [ ] Theme overrides in customer repo override core defaults
-- [ ] Update workflow (fetch → checkout tag → commit) works
-- [ ] Build succeeds after submodule update
+- [ ] Core repo contains all shared components, context, functions, types ✅
+- [ ] Customer repo can import from core submodule ⬜ Future
+- [ ] Submodule pinned to version tag works correctly ⬜ Future
+- [ ] Customer-specific pages work alongside core ⬜ Future
+- [ ] Theme overrides in customer repo override core defaults ⬜ Future
+- [ ] Update workflow (fetch → checkout tag → commit) works ⬜ Future
+- [ ] Build succeeds after submodule update ⬜ Future
 
 ---
 
@@ -306,7 +306,7 @@ Each phase should be committed as a single, well-described commit (or small PR):
 | 3 | `feat: add theming support with dark mode` | ~12 files | ✅ `f51b793` |
 | 4.1-4.5 | `feat: add semantic CMS components with DOM enhancement` | ~6 files | ✅ Complete |
 | 4.6 | `feat: add Component Builder modal for admin` | ~3 files | ✅ Complete |
-| 5 | `refactor: extract shared core submodule pattern` | ~5 files | ⬜ Pending |
+| 5 | `refactor: extract shared core submodule pattern` | ~5 files | ✅ Complete |
 
 ---
 
