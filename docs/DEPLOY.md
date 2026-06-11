@@ -38,8 +38,8 @@ Configure these in Cloudflare Pages under project settings and environment varia
 
 - `CMS_ADMIN_PASSWORD` - shared password for trusted editors/admins
 - `CMS_SESSION_SECRET` - long random secret used to sign admin session cookies
-- `GITHUB_GIST_ID` - GitHub Gist id containing `content.json`
-- `GITHUB_TOKEN` - GitHub token with `gist` scope
+- `GITHUB_GIST_ID` - GitHub Gist id containing `content.json` (required for Gist backend)
+- `GITHUB_TOKEN` - GitHub token with `gist` scope (required for Gist backend)
 
 Operational rules:
 
@@ -48,7 +48,26 @@ Operational rules:
 - Rotate `GITHUB_TOKEN` in GitHub and Cloudflare if exposure is suspected.
 - Use a strong random `CMS_SESSION_SECRET`; changing it invalidates existing sessions.
 
-## GitHub Gist Content Store
+## Storage Backends
+
+The CMS supports two storage backends for content. The backend is selected automatically based on configured environment variables.
+
+### Cloudflare KV (Recommended)
+
+KV is the recommended backend for new deployments. It requires no external accounts and is fully managed by Cloudflare.
+
+Setup steps:
+
+1. Open Cloudflare Dashboard → Workers & Pages → KV.
+2. Create a new KV namespace (e.g., `goldsteinfreunde-content`).
+3. Go to your Pages project → Settings → Bindings.
+4. Add a KV namespace binding with variable name `CONTENT_KV`.
+5. Set `CMS_ADMIN_PASSWORD` and `CMS_SESSION_SECRET` in environment variables.
+6. No GitHub account or tokens required.
+
+### GitHub Gist (Legacy)
+
+The Gist backend is retained for backward compatibility. It stores content in a GitHub Gist.
 
 Expected Gist files:
 
@@ -56,7 +75,23 @@ Expected Gist files:
 - `audit-log.json` - publish history, created/updated by the app
 - `backup-content-<timestamp>.json` - automatic pre-publish backups, retained by the app
 
+Setup steps:
+
+1. Create a GitHub Gist with an empty `content.json` file.
+2. Create a GitHub Personal Access Token with `gist` scope.
+3. Set `GITHUB_GIST_ID` and `GITHUB_TOKEN` in Cloudflare Pages environment variables.
+4. Set `CMS_ADMIN_PASSWORD` and `CMS_SESSION_SECRET`.
+
 The Gist is accessed only by Cloudflare Pages Functions. The browser calls `/api/*`; it does not call GitHub directly and does not receive the GitHub token.
+
+### Backend Selection
+
+If both `CONTENT_KV` and `GITHUB_GIST_ID`/`GITHUB_TOKEN` are configured, KV takes precedence. To migrate from Gist to KV:
+
+1. Create a KV namespace and bind it as `CONTENT_KV`.
+2. Deploy the updated code.
+3. The CMS will automatically use KV for all subsequent reads/writes.
+4. Remove the `GITHUB_GIST_ID` and `GITHUB_TOKEN` variables once migration is confirmed.
 
 ## Code Deployment Flow
 

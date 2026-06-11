@@ -1,8 +1,13 @@
+import type { ContentStorage } from "./storage/types";
+import { gistStorage } from "./storage/gist";
+import { kvStorage } from "./storage/kv";
+
 export interface Env {
   GITHUB_GIST_ID: string;
   GITHUB_TOKEN: string;
   CMS_ADMIN_PASSWORD: string;
   CMS_SESSION_SECRET: string;
+  CONTENT_KV: KVNamespace;
 }
 
 export interface AuditEntry {
@@ -22,7 +27,15 @@ export function json(data: unknown, status = 200): Response {
 }
 
 export function isConfigured(env: Env): boolean {
-  return !!env.GITHUB_GIST_ID && !!env.GITHUB_TOKEN && !!env.CMS_ADMIN_PASSWORD && !!env.CMS_SESSION_SECRET;
+  const hasKv = !!env.CONTENT_KV;
+  const hasGist = !!env.GITHUB_GIST_ID && !!env.GITHUB_TOKEN;
+  return (hasKv || hasGist) && !!env.CMS_ADMIN_PASSWORD && !!env.CMS_SESSION_SECRET;
+}
+
+export function selectStorage(env: Env): ContentStorage {
+  if (env.CONTENT_KV) return kvStorage;
+  if (env.GITHUB_GIST_ID && env.GITHUB_TOKEN) return gistStorage;
+  throw new Error("Kein Storage-Backend konfiguriert");
 }
 
 const SESSION_COOKIE = "gf_admin_session";
@@ -97,103 +110,6 @@ export function sessionCookie(token: string): string {
 
 export function clearSessionCookie(): string {
   return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
-}
-
-export async function fetchGist(env: Env): Promise<{ data: unknown; version: string }> {
-  const res = await fetch(`https://api.github.com/gists/${env.GITHUB_GIST_ID}`, {
-    headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      "User-Agent": "goldsteinfreunde-cms",
-      Accept: "application/vnd.github+json",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Gist kann nicht geladen werden (${res.status})`);
-  }
-
-  const gist = await res.json() as {
-    updated_at?: string;
-    files?: Record<string, { content?: string }>;
-  };
-  const file = gist.files?.["content.json"];
-  if (!file?.content) throw new Error("content.json fehlt im Gist");
-
-  return {
-    data: JSON.parse(file.content),
-    version: gist.updated_at || "",
-  };
-}
-
-export async function fetchGistWithAudit(env: Env): Promise<{ data: unknown; version: string; audit: AuditEntry[]; files: string[] }> {
-  const res = await fetch(`https://api.github.com/gists/${env.GITHUB_GIST_ID}`, {
-    headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      "User-Agent": "goldsteinfreunde-cms",
-      Accept: "application/vnd.github+json",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Gist kann nicht geladen werden (${res.status})`);
-  }
-
-  const gist = await res.json() as {
-    updated_at?: string;
-    files?: Record<string, { content?: string }>;
-  };
-  const contentFile = gist.files?.["content.json"];
-  if (!contentFile?.content) throw new Error("content.json fehlt im Gist");
-
-  const auditFile = gist.files?.["audit-log.json"];
-  let audit: AuditEntry[] = [];
-  if (auditFile?.content) {
-    try {
-      const parsed = JSON.parse(auditFile.content) as AuditEntry[];
-      if (Array.isArray(parsed)) audit = parsed;
-    } catch {
-      audit = [];
-    }
-  }
-
-  return {
-    data: JSON.parse(contentFile.content),
-    version: gist.updated_at || "",
-    audit,
-    files: Object.keys(gist.files || {}),
-  };
-}
-
-export async function saveGist(env: Env, content: unknown, audit?: AuditEntry[], extraFiles?: Record<string, string>, deleteFiles?: string[]): Promise<void> {
-  const files: Record<string, { content: string } | null> = {
-    "content.json": { content: JSON.stringify(content, null, 2) },
-  };
-  if (audit) {
-    files["audit-log.json"] = { content: JSON.stringify(audit, null, 2) };
-  }
-  for (const [name, fileContent] of Object.entries(extraFiles || {})) {
-    files[name] = { content: fileContent };
-  }
-  for (const name of deleteFiles || []) {
-    files[name] = null;
-  }
-
-  const res = await fetch(`https://api.github.com/gists/${env.GITHUB_GIST_ID}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      "Content-Type": "application/json",
-      "User-Agent": "goldsteinfreunde-cms",
-      Accept: "application/vnd.github+json",
-    },
-    body: JSON.stringify({
-      files,
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Fehler beim Speichern (${res.status})`);
-  }
 }
 
 export function sanitizeContentData(input: unknown): unknown {

@@ -1,5 +1,5 @@
 import type { Env } from "./_shared";
-import { fetchGistWithAudit, isConfigured, isValidSession, json } from "./_shared";
+import { isConfigured, isValidSession, json, selectStorage } from "./_shared";
 
 export async function onRequestGet(context: { request: Request; env: Env }): Promise<Response> {
   const { request, env } = context;
@@ -11,8 +11,9 @@ export async function onRequestGet(context: { request: Request; env: Env }): Pro
   }
 
   try {
-    const gist = await fetchGistWithAudit(env);
-    return json({ audit: gist.audit.slice(0, 5) });
+    const storage = selectStorage(env);
+    const result = await storage.fetchContentWithAudit(env);
+    return json({ audit: result.audit.slice(0, 5) });
   } catch (error) {
     return json({ error: error instanceof Error ? error.message : "Unbekannter Fehler" }, 502);
   }
