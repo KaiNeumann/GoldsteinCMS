@@ -1,0 +1,438 @@
+@import "tailwindcss";
+
+@theme {
+  /* OpenHands Theme - Cream & Brown palette */
+  --color-primary: #8A5F45;
+  --color-primary-dark: #6B4733;
+  --color-primary-light: #A67B5B;
+
+  /* Surfaces - Cream tones */
+  --color-surface: #F9F0D9;
+  --color-surface-alt: #F5EBD7;
+  --color-surface-card: #FFFFFF;
+
+  /* Text - Dark brown */
+  --color-text: #22150D;
+  --color-text-muted: #5F5F5F;
+  --color-text-on-primary: #FFFFFF;
+
+  /* Brand colors from OpenHands */
+  --color-brand-accent: #8A5F45;
+  --color-brand-bg: #22150D;
+  --color-brand-muted: #5F5F5F;
+  --color-brand-fg: #22150D;
+  --color-brand-highlight: #FFFF8B;
+
+  /* Borders */
+  --color-border: #B3A88C;
+  --color-border-strong: #8A7A6A;
+
+  /* Semantic */
+  --color-success: #2d6a1e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Typography */
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: Georgia, "Times New Roman", serif;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+}
+
+/* Scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove default link styles for router links */
+a {
+  text-decoration: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-alt);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Safe default for editor-inserted images after inline styles are stripped. */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.prose figure {
+  margin: 16px 0;
+  max-width: 100%;
+}
+
+.prose figcaption {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  font-style: italic;
+  display: block;
+}
+
+/* Dark Mode: Disabled for this example - OpenHands uses light theme */
+:root[data-theme="dark"] {
+  --color-primary: #A67B5B;
+  --color-primary-dark: #8A5F45;
+  --color-primary-light: #C4A484;
+
+  --color-surface: #1a1510;
+  --color-surface-alt: #22150D;
+  --color-surface-card: #2a1f15;
+
+  --color-text: #F9F0D9;
+  --color-text-muted: #B3A88C;
+  --color-text-on-primary: #FFFFFF;
+
+  --color-border: #4a3f35;
+  --color-border-strong: #5a4f45;
+}
+
+/* Collapsible animation */
+.gf-collapsible {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+}
+.gf-collapsible[open] {
+  grid-template-rows: auto 1fr;
+}
+.gf-collapsible > :last-child {
+  overflow: hidden;
+}
+
+/* Accordion styling */
+.gf-accordion {
+  border-top: 1px solid var(--color-border);
+}
+.gf-accordion-item {
+  border-bottom: 1px solid var(--color-border);
+}
+.gf-accordion-item summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  list-style: none;
+}
+.gf-accordion-item summary::-webkit-details-marker {
+  display: none;
+}
+.gf-accordion-item summary::marker {
+  display: none;
+  content: "";
+}
+.gf-accordion-item summary .chevron {
+  display: inline-block;
+  transition: transform 0.3s ease-out;
+  margin-right: 0.5rem;
+  color: var(--color-primary);
+}
+.gf-accordion-item[open] summary .chevron {
+  transform: rotate(90deg);
+}
+.gf-accordion-item > :last-child {
+  overflow: hidden;
+  transition: grid-template-rows 0.3s ease-out;
+}
+
+/* Form styles */
+.gf-honeypot {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  tab-index: -1;
+}
+
+.gf-form-input:focus {
+  box-shadow: 0 0 0 3px rgba(138, 95, 69, 0.15);
+}
+
+.gf-form-checkbox {
+  accent-color: var(--color-primary);
+}
+
+.gf-form-submit:active {
+  transform: scale(0.98);
+}
+
+.gf-form-success {
+  animation: gf-fade-in 0.3s ease-out;
+}
+
+.gf-form-error {
+  animation: gf-shake 0.3s ease-out;
+}
+
+@keyframes gf-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gf-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+/* Card Grid */
+.gf-card-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.gf-card-grid[data-columns="2"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+.gf-card-grid[data-columns="3"] {
+  grid-template-columns: repeat(3, 1fr);
+}
+.gf-card-grid[data-columns="4"] {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 640px) {
+  .gf-card-grid[data-columns="2"],
+  .gf-card-grid[data-columns="3"],
+  .gf-card-grid[data-columns="4"] {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .gf-card-grid[data-columns="3"],
+  .gf-card-grid[data-columns="4"] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.gf-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.gf-card:hover {
+  box-shadow: 0 4px 12px rgba(34, 21, 13, 0.08);
+  transform: translateY(-2px);
+}
+.gf-card figure {
+  margin: 0;
+  overflow: hidden;
+  position: relative;
+}
+.gf-card figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.gf-card:hover figure img {
+  transform: scale(1.03);
+}
+.gf-card figure figcaption {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  font-style: italic;
+  background: var(--color-surface-alt);
+}
+.gf-card[data-card-aspect="1:1"] figure {
+  aspect-ratio: 1 / 1;
+}
+.gf-card[data-card-aspect="4:3"] figure {
+  aspect-ratio: 4 / 3;
+}
+.gf-card[data-card-aspect="16:9"] figure {
+  aspect-ratio: 16 / 9;
+}
+.gf-card > *:not(figure) {
+  padding: 0 1rem;
+}
+.gf-card > h3 {
+  margin: 0.75rem 0 0.25rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.gf-card > p {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0.75rem;
+  flex: 1;
+}
+.gf-card > a:not(:first-child):last-child {
+  display: inline-block;
+  margin: 0 1rem 1rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color 0.15s;
+}
+.gf-card > a:not(:first-child):last-child:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Card clickable */
+.gf-card[data-href] {
+  cursor: pointer;
+}
+.gf-card[data-href]:hover {
+  text-decoration: none;
+}
+
+/* Steps */
+.gf-steps {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.gf-steps[data-columns="2"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+.gf-steps[data-columns="3"] {
+  grid-template-columns: repeat(3, 1fr);
+}
+.gf-steps[data-columns="4"] {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 640px) {
+  .gf-steps[data-columns="2"],
+  .gf-steps[data-columns="3"],
+  .gf-steps[data-columns="4"] {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .gf-steps[data-columns="3"],
+  .gf-steps[data-columns="4"] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.gf-step {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.gf-step figure {
+  margin: 0;
+  overflow: hidden;
+}
+.gf-step figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gf-step figure figcaption {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  font-style: italic;
+  background: var(--color-surface-alt);
+}
+.gf-step > *:not(figure) {
+  padding: 0 1rem;
+}
+.gf-step > h3 {
+  margin: 0.75rem 0 0.25rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.gf-step > p {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 1rem;
+  flex: 1;
+}
+
+/* YouTube embed */
+.gf-youtube {
+  position: relative;
+  margin: 1rem 0;
+}
+.gf-youtube-embed {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+.gf-youtube-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.gf-youtube-embed[data-aspect="16:9"] { padding-bottom: 56.25%; }
+.gf-youtube-embed[data-aspect="4:3"] { padding-bottom: 75%; }
+.gf-youtube-embed[data-aspect="1:1"] { padding-bottom: 100%; }
+.gf-youtube-embed[data-aspect="9:16"] { padding-bottom: 177.78%; }
+
+.gf-youtube-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface-card);
+}
+
+/* OpenHands specific overrides */
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.fluid-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.fluid-h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.fluid-h4 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.4;
+}

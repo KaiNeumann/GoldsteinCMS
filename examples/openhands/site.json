@@ -1,0 +1,56 @@
+{
+  "navigation": [
+    { "label": "Home", "path": "/" },
+    { "label": "Product", "path": "/product" },
+    { "label": "Enterprise", "path": "/enterprise" },
+    { "label": "Pricing", "path": "/pricing" },
+    { "label": "About", "path": "/about" },
+    {
+      "label": "Resources",
+      "path": "/resources",
+      "children": [
+        { "label": "Community", "path": "/community" },
+        { "label": "Manifesto", "path": "/manifesto" },
+        { "label": "Docs", "path": "/docs" },
+        { "label": "Blog", "path": "/blog" },
+        { "label": "Press", "path": "/press" },
+        { "label": "Careers", "path": "/careers" }
+      ]
+    },
+    { "label": "Contact", "path": "/contact" }
+  ],
+  "sidebar": ["contact", "quickInfo"],
+  "footer": {
+    "columns": ["brand", "navigation", "contact", "socialLinks"],
+    "credit": "OpenHands - AI Coding Agents",
+    "showAdminLink": false
+  },
+  "homeBlocks": ["welcome", "latestPost", "olderPosts"],
+  "hero": {
+    "headline": "Build software faster with AI agents",
+    "subtitle": "OpenHands is an AI agent platform for autonomous software development",
+    "showTrees": false
+  },
+  "pages": {
+    "/": { "component": "Home", "title": "Home" },
+    "/product": { "component": "About", "title": "Product" },
+    "/enterprise": { "component": "About", "title": "Enterprise" },
+    "/pricing": { "component": "About", "title": "Pricing" },
+    "/about": { "component": "About", "title": "About" },
+    "/community": { "component": "Activities", "title": "Community" },
+    "/manifesto": { "component": "Activities", "title": "Manifesto" },
+    "/docs": { "component": "Activities", "title": "Documentation" },
+    "/blog": { "component": "Activities", "title": "Blog" },
+    "/press": { "component": "Activities", "title": "Press" },
+    "/careers": { "component": "Activities", "title": "Careers" },
+    "/contact": { "component": "Impressum", "title": "Contact" }
+  },
+  "forms": {
+    "contact": {
+      "enabled": false,
+      "strategy": "mailto",
+      "requirePrivacyConsent": false,
+      "maxMessageLength": 4000
+    }
+  }
+}

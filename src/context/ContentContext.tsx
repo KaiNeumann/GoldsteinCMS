@@ -54,7 +54,27 @@ export function ContentProvider({ children }: { children: ReactNode }) {
 
   // Load saved content on mount
   useEffect(() => {
+    // Detect if we're running from file:// protocol (standalone HTML)
+    const isFileProtocol = typeof window !== "undefined" && window.location.protocol === "file:";
+    // Also detect if no remote backend is configured (empty origin means file or local)
+    const isLocalOnly = typeof window !== "undefined" && (window.location.origin === "null" || isFileProtocol);
+
     const loadContent = async () => {
+      // Skip remote fetch for file:// protocol or when explicitly local
+      if (isLocalOnly) {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved) as ContentData;
+            setContent(normalizeContent(parsed));
+          } catch {
+            // Use defaults
+          }
+        }
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const remote = await fetchFromRemote();
         const normalized = normalizeContent(remote.data);
@@ -65,6 +85,18 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         return;
       } catch (error) {
+        // Try localStorage fallback - useful for standalone HTML files
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved) as ContentData;
+            setContent(normalizeContent(parsed));
+            setIsLoading(false);
+            return;
+          } catch {
+            // Use defaults if localStorage parse fails
+          }
+        }
         if (!IS_LOCAL_DEV_FALLBACK) {
           setLoadError(error instanceof Error ? error.message : "Inhalte konnten nicht geladen werden");
           setIsLoading(false);
