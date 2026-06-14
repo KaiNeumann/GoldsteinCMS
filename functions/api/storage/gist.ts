@@ -3,29 +3,8 @@ import type { ContentStorage } from "./types";
 
 export const gistStorage: ContentStorage = {
   async fetchContent(env): Promise<{ data: unknown; version: string }> {
-    const res = await fetch(`https://api.github.com/gists/${env.GITHUB_GIST_ID}`, {
-      headers: {
-        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-        "User-Agent": "goldsteinfreunde-cms",
-        Accept: "application/vnd.github+json",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Gist kann nicht geladen werden (${res.status})`);
-    }
-
-    const gist = await res.json() as {
-      updated_at?: string;
-      files?: Record<string, { content?: string }>;
-    };
-    const file = gist.files?.["content.json"];
-    if (!file?.content) throw new Error("content.json fehlt im Gist");
-
-    return {
-      data: JSON.parse(file.content),
-      version: gist.updated_at || "",
-    };
+    const { data, version } = await this.fetchContentWithAudit(env);
+    return { data, version };
   },
 
   async fetchContentWithAudit(env): Promise<{ data: unknown; version: string; audit: AuditEntry[]; files: string[] }> {

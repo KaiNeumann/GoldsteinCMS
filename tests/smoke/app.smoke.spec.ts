@@ -7,38 +7,20 @@ const mockContent = {
       date: "2026-06-01",
       author: "Smoke Test",
       title: "Smoke Beitrag",
-      content: "<p>Smoke Content</p>",
+      content: "Smoke Content",
     },
   ],
-  siteConfig: {
-    name: "Goldsteinfreunde Bad Nauheim e.V.",
-    shortName: "Goldsteinfreunde",
-    tagline: "Test Tagline",
-    email: "info@goldsteinfreunde.de",
-    phone: "+49 160 5551160",
-    phoneNote: "Test",
-    phoneLandline: "+49 6032 3075898",
-    address: { street: "Adlerweg 27", zip: "61231", city: "Bad Nauheim" },
-    bankAccount: {
-      bank: "Sparkasse Oberhessen",
-      accountNumber: "270 885 38",
-      blz: "518 500 79",
-      iban: "DE24518500790027088538",
-      bic: "HELADEF1FRI",
-    },
-    registry: { court: "Amtsgericht Friedberg", number: "VR 2732" },
-    board: [{ name: "Gerd Hildebrand", role: "Vorsitzender" }],
-    responsibleContent: {
-      name: "Kai Uwe Neumann",
-      street: "Rohrweihenweg 21",
-      zip: "61231",
-      city: "Bad Nauheim",
-    },
-    founded: "Juli 2011",
-    members: "über 150",
-    bannerImage: "",
+  fields: {
+    "site.name": "OpenHands Smoke",
+    "site.shortName": "OpenHands",
+    "site.tagline": "Smoke Test Tagline",
+    "contact.email": "hello@example.test",
+    "pages.home.welcomeHtml": "## Smoke Welcome\n\nMarkdown content for smoke tests.",
+    "pages.about.html": "## About Smoke\n\nThe about page is editable markdown.",
+    "pages.impressum.html": "## Contact Smoke\n\nhello@example.test",
   },
   images: [],
+  components: {},
 };
 
 test.beforeEach(async ({ page }) => {
@@ -85,20 +67,25 @@ test.beforeEach(async ({ page }) => {
 
 test("public routes render", async ({ page }) => {
   await page.goto("/#/");
-  await expect(page.getByRole("heading", { name: "Willkommen im Goldsteinpark" })).toBeVisible();
+
+  const acceptBtn = page.getByRole("button", { name: "Alle akzeptieren" });
+  if (await acceptBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await acceptBtn.click();
+  }
+
+  await expect(page.getByRole("heading", { name: "Smoke Welcome" })).toBeVisible();
   await expect(page.getByText("Smoke Beitrag")).toBeVisible();
 
-  await page.goto("/#/ueber-uns");
-  await expect(page.getByRole("heading", { name: "Über uns" })).toBeVisible();
+  await page.goto("/#/about");
+  await expect(page.getByRole("heading", { name: "About", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "About Smoke" })).toBeVisible();
 
-  await page.goto("/#/aktivitaeten");
+  await page.goto("/#/community");
   await expect(page.getByRole("heading", { name: "Aktivitäten & Beiträge" })).toBeVisible();
 
-  await page.goto("/#/huettennutzung");
-  await expect(page.getByRole("heading", { name: "Hüttennutzung" })).toBeVisible();
-  await expect(page.getByText("Google-Kalender laden")).toBeVisible();
-  await page.getByRole("button", { name: "Kalender anzeigen" }).click();
-  await expect(page.locator('iframe[title="Belegungsplan Hütte"]')).toBeVisible();
+  await page.goto("/#/contact");
+  await expect(page.getByRole("heading", { name: "Contact", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Contact Smoke" })).toBeVisible();
 });
 
 test("admin login and publish flow works", async ({ page }) => {
@@ -108,12 +95,12 @@ test("admin login and publish flow works", async ({ page }) => {
   await page.getByRole("button", { name: "Anmelden" }).click();
   await expect(page.getByRole("heading", { name: "Admin-Dashboard" })).toBeVisible();
 
-  await page.getByRole("button", { name: "GitHub" }).click();
+  await page.getByRole("button", { name: "Veröffentlichen" }).click();
   await page.getByPlaceholder("z.B. Martina").fill("Kai");
   await page.getByPlaceholder("z.B. Neue Termine ergänzt").fill("Kurze Aktualisierung");
   await page.getByRole("button", { name: "Jetzt veröffentlichen" }).click();
 
-  await expect(page.getByText("erfolgreich auf GitHub veröffentlicht")).toBeVisible();
+  await expect(page.getByText("Inhalte erfolgreich veröffentlicht")).toBeVisible();
 });
 
 test("admin publish conflict shows guidance", async ({ page }) => {
@@ -130,7 +117,7 @@ test("admin publish conflict shows guidance", async ({ page }) => {
   await page.getByRole("button", { name: "Anmelden" }).click();
   await expect(page.getByRole("heading", { name: "Admin-Dashboard" })).toBeVisible();
 
-  await page.getByRole("button", { name: "GitHub" }).click();
+  await page.getByRole("button", { name: "Veröffentlichen" }).click();
   await page.getByPlaceholder("z.B. Martina").fill("Kai");
   await page.getByPlaceholder("z.B. Neue Termine ergänzt").fill("Parallel-Änderung Test");
   await page.getByRole("button", { name: "Jetzt veröffentlichen" }).click();
@@ -152,7 +139,7 @@ test("admin publish with expired session forces logout", async ({ page }) => {
   await page.getByRole("button", { name: "Anmelden" }).click();
   await expect(page.getByRole("heading", { name: "Admin-Dashboard" })).toBeVisible();
 
-  await page.getByRole("button", { name: "GitHub" }).click();
+  await page.getByRole("button", { name: "Veröffentlichen" }).click();
   await page.getByPlaceholder("z.B. Martina").fill("Kai");
   await page.getByPlaceholder("z.B. Neue Termine ergänzt").fill("Session Test");
   await page.getByRole("button", { name: "Jetzt veröffentlichen" }).click();

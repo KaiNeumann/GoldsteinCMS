@@ -179,7 +179,7 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
   const closeSettings = useCallback(() => setShowSettings(false), []);
 
   const value: ConsentContextType = {
-    consented: Object.entries(categories).some(([id, accepted]) => accepted),
+    consented: Object.values(categories).some(Boolean),
     categories,
     services,
     showBanner,

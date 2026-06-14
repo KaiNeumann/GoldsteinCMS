@@ -1,0 +1,36 @@
+import type { SiteConfig } from "./defaultContent";
+
+export function migrateSiteConfigToFields(siteConfig: SiteConfig): Record<string, unknown> {
+  return {
+    "site.name": siteConfig.name,
+    "site.shortName": siteConfig.shortName,
+    "site.tagline": siteConfig.tagline,
+    "site.founded": siteConfig.founded,
+    "site.members": siteConfig.members,
+    "site.bannerImage": siteConfig.bannerImage,
+    "site.bannerImageCredit": siteConfig.bannerImageCredit,
+    "contact.email": siteConfig.email,
+    "contact.phone": siteConfig.phone,
+    "contact.phoneNote": siteConfig.phoneNote,
+    "contact.phoneLandline": siteConfig.phoneLandline,
+    "address.street": siteConfig.address.street,
+    "address.zip": siteConfig.address.zip,
+    "address.city": siteConfig.address.city,
+    "bankAccount.bank": siteConfig.bankAccount.bank,
+    "bankAccount.accountNumber": siteConfig.bankAccount.accountNumber,
+    "bankAccount.blz": siteConfig.bankAccount.blz,
+    "bankAccount.iban": siteConfig.bankAccount.iban,
+    "bankAccount.bic": siteConfig.bankAccount.bic,
+    "registry.court": siteConfig.registry.court,
+    "registry.number": siteConfig.registry.number,
+    "responsibleContent.name": siteConfig.responsibleContent.name,
+    "responsibleContent.street": siteConfig.responsibleContent.street,
+    "responsibleContent.zip": siteConfig.responsibleContent.zip,
+    "responsibleContent.city": siteConfig.responsibleContent.city,
+    "pages.home.welcomeHtml": siteConfig.pageContent.homeWelcomeHtml,
+    "pages.about.mainHtml": siteConfig.pageContent.aboutMainHtml,
+    "pages.huettennutzung.introHtml": siteConfig.pageContent.huettennutzungIntroHtml,
+    "pages.impressum.html": siteConfig.pageContent.impressumHtml,
+    "pages.datenschutz.html": siteConfig.pageContent.datenschutzHtml,
+  };
+}

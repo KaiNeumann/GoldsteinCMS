@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useContent } from "../context/ContentContext";
+import { useContentFields } from "../context/ContentFields";
 import { site, NavigationItem } from "../siteConfig";
 import ContactWidget from "./widgets/ContactWidget";
 import BankAccountWidget from "./widgets/BankAccountWidget";
@@ -8,6 +8,7 @@ import QuickInfoWidget from "./widgets/QuickInfoWidget";
 import BrandColumn from "./footer/BrandColumn";
 import NavColumn from "./footer/NavColumn";
 import ContactColumn from "./footer/ContactColumn";
+import SocialLinksColumn from "./footer/SocialLinksColumn";
 import ThemeToggle from "./ThemeToggle";
 
 function NavLink({ item, scrollToTop }: { item: NavigationItem; scrollToTop: () => void }) {
@@ -178,8 +179,12 @@ function MobileNavLink({ item, scrollToTop, onNavigate }: { item: NavigationItem
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { content } = useContent();
-  const { siteConfig: cfg } = content;
+  const { getStringField } = useContentFields();
+  const siteName = getStringField("site.name");
+  const shortName = getStringField("site.shortName");
+  const tagline = getStringField("site.tagline");
+  const bannerImage = getStringField("site.bannerImage");
+  const bannerImageCredit = getStringField("site.bannerImageCredit");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = location.pathname === "/admin";
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -194,6 +199,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     brand: BrandColumn,
     navigation: NavColumn,
     contact: ContactColumn,
+    socialLinks: SocialLinksColumn,
   };
 
   useEffect(() => {
@@ -212,10 +218,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ fontFamily: "var(--font-heading)" }}>
-                  {cfg.shortName}
+                  {shortName}
                 </h1>
                 <p className="text-green-200 text-sm md:text-base opacity-90 mt-0.5">
-                  {cfg.tagline}
+                  {tagline}
                 </p>
               </div>
             </Link>
@@ -271,13 +277,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {location.pathname === "/" && (
         <div className="relative h-48 md:h-64 lg:h-80 overflow-hidden bg-gradient-to-br from--primary to--primary-dark">
           {/* Background image or default gradient */}
-          {cfg.bannerImage ? (
+          {bannerImage ? (
             <div className="absolute inset-0">
-              <img src={cfg.bannerImage} alt="Goldsteinpark" className="w-full h-full object-cover" />
+              <img src={bannerImage} alt="Goldsteinpark" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50"></div>
-              {cfg.bannerImageCredit && (
+              {bannerImageCredit && (
                 <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded backdrop-blur-sm pointer-events-none z-10">
-                  📷 {cfg.bannerImageCredit}
+                  📷 {bannerImageCredit}
                 </div>
               )}
             </div>
@@ -286,7 +292,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white px-4">
-              {!cfg.bannerImage && site.hero.showTrees && (
+              {!bannerImage && site.hero.showTrees && (
                 <div className="flex items-center justify-center gap-3 mb-3">
                   <svg viewBox="0 0 100 120" className="w-12 h-16 md:w-16 md:h-20 opacity-30" fill="white">
                     <ellipse cx="50" cy="40" rx="35" ry="40" />
@@ -310,7 +316,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </p>
             </div>
           </div>
-          {!cfg.bannerImage && (
+          {!bannerImage && (
             <div className="absolute inset-0 opacity-10" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
             }}></div>
@@ -349,7 +355,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             })}
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-green-300 text-xs">
-            <p>© {new Date().getFullYear()} {cfg.name}. Alle Rechte vorbehalten.</p>
+            <p>© {new Date().getFullYear()} {siteName}. Alle Rechte vorbehalten.</p>
             <div className="flex items-center gap-3">
               <span>{site.footer.credit}</span>
               {site.footer.showAdminLink && (

@@ -1,17 +1,13 @@
 import type { AuditEntry } from "../_shared";
+import { BACKUP_PREFIX } from "./backupConstants";
 import type { ContentStorage } from "./types";
-
-const BACKUP_PREFIX = "backup-content-";
-const MAX_BACKUPS = 30;
 
 export const kvStorage: ContentStorage = {
   async fetchContent(env): Promise<{ data: unknown; version: string }> {
     const kv = env.CONTENT_KV as KVNamespace;
 
-    const content = await kv.get("content");
+    const { value: content, metadata } = await kv.getWithMetadata<{ version?: string }>("content");
     if (!content) throw new Error("content fehlt im KV");
-
-    const { value: _, metadata } = await kv.getWithMetadata<{ version?: string }>("content");
 
     return {
       data: JSON.parse(content),
@@ -22,10 +18,8 @@ export const kvStorage: ContentStorage = {
   async fetchContentWithAudit(env): Promise<{ data: unknown; version: string; audit: AuditEntry[]; files: string[] }> {
     const kv = env.CONTENT_KV as KVNamespace;
 
-    const content = await kv.get("content");
+    const { value: content, metadata } = await kv.getWithMetadata<{ version?: string }>("content");
     if (!content) throw new Error("content fehlt im KV");
-
-    const { value: _, metadata } = await kv.getWithMetadata<{ version?: string }>("content");
 
     const auditContent = await kv.get("audit");
     let audit: AuditEntry[] = [];
@@ -73,13 +67,5 @@ export const kvStorage: ContentStorage = {
       }
     }
 
-    const backupsList = await kv.list({ prefix: BACKUP_PREFIX });
-    const backupKeys = backupsList.keys.map((k) => k.name).sort().reverse();
-    if (backupKeys.length > MAX_BACKUPS) {
-      const toDelete = backupKeys.slice(MAX_BACKUPS);
-      for (const key of toDelete) {
-        await kv.delete(key);
-      }
-    }
   },
 };

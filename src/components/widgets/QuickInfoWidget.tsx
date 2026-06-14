@@ -1,8 +1,11 @@
-﻿import { useContent } from "../../context/ContentContext";
+﻿import { useContentFields } from "../../context/ContentFields";
 
 export default function QuickInfoWidget() {
-  const { content } = useContent();
-  const { siteConfig: cfg } = content;
+  const { getStringField } = useContentFields();
+  const founded = getStringField("site.founded");
+  const members = getStringField("site.members");
+  const registryCourt = getStringField("registry.court");
+  const registryNumber = getStringField("registry.number");
 
   return (
     <div className="bg-surface-card rounded-xl shadow-md overflow-hidden">
@@ -13,11 +16,11 @@ export default function QuickInfoWidget() {
         <ul className="space-y-2">
           <li className="flex items-center gap-2 text-text">
             <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
-            Gegründet {cfg.founded}
+            Gegründet {founded}
           </li>
           <li className="flex items-center gap-2 text-text">
             <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
-            {cfg.members} Mitglieder
+            {members} Mitglieder
           </li>
           <li className="flex items-center gap-2 text-text">
             <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
@@ -25,7 +28,7 @@ export default function QuickInfoWidget() {
           </li>
           <li className="flex items-center gap-2 text-text">
             <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>
-            {cfg.registry.court}, {cfg.registry.number}
+            {registryCourt}, {registryNumber}
           </li>
           <li className="flex items-center gap-2 text-text">
             <span className="w-1.5 h-1.5 bg--primary-light rounded-full flex-shrink-0"></span>

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useContent } from "../context/ContentContext";
-import type { SiteImage } from "../content/defaultContent";
+import type { CmsComponent, CmsComponentType, SiteImage } from "../content/defaultContent";
+import { CALLOUT_STYLES, COMPONENT_TYPES, type CalloutType, type ComponentType } from "./builders/componentBuilderOptions";
 
-type ComponentType = "gallery" | "slider" | "collapsible" | "accordion" | "callout" | "table";
-type CalloutType = "info" | "warning" | "success" | "tip";
+type InsertComponent = (type: CmsComponentType, label: string, data: Record<string, unknown>) => void;
+type ComponentData = Record<string, unknown>;
 
 interface AccordionSection {
   title: string;
@@ -13,24 +14,10 @@ interface AccordionSection {
 interface BuilderProps {
   open: boolean;
   onClose: () => void;
-  onInsert: (html: string) => void;
+  onInsert?: (html: string) => void;
+  editComponent?: CmsComponent | null;
+  onSaved?: () => void;
 }
-
-const COMPONENT_TYPES: { type: ComponentType; icon: string; label: string; desc: string }[] = [
-  { type: "gallery", icon: "🖼️", label: "Galerie", desc: "Bilder im Raster" },
-  { type: "slider", icon: "🎠", label: "Slider", desc: "Bilder im Karussell" },
-  { type: "collapsible", icon: "📋", label: "Aufklappbar", desc: "Text ein-/ausklappen" },
-  { type: "accordion", icon: "❓", label: "Akkordeon", desc: "Nur ein Section offen" },
-  { type: "callout", icon: "ℹ️", label: "Hinweisbox", desc: "Info, Warnung, Tipp" },
-  { type: "table", icon: "📊", label: "Tabelle", desc: "Responsiv formatiert" },
-];
-
-const CALLOUT_STYLES: { type: CalloutType; icon: string; label: string; color: string }[] = [
-  { type: "info", icon: "ℹ️", label: "Info", color: "border-blue-400 bg-blue-50 text-blue-800" },
-  { type: "warning", icon: "⚠️", label: "Warnung", color: "border-amber-400 bg-amber-50 text-amber-800" },
-  { type: "success", icon: "✅", label: "Erfolg", color: "border-green-400 bg-green-50 text-green-800" },
-  { type: "tip", icon: "💡", label: "Tipp", color: "border-purple-400 bg-purple-50 text-purple-800" },
-];
 
 function ImagePickerGrid({
   images,
@@ -96,10 +83,11 @@ function PillGroup({ options, value, onChange }: {
   );
 }
 
-export default function ComponentBuilder({ open, onClose, onInsert }: BuilderProps) {
-  const { content } = useContent();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [selectedType, setSelectedType] = useState<ComponentType | null>(null);
+export default function ComponentBuilder({ open, onClose, onInsert, editComponent, onSaved }: BuilderProps) {
+  const { content, saveComponent } = useContent();
+  const isEditing = Boolean(editComponent);
+  const [step, setStep] = useState<1 | 2>(editComponent ? 2 : 1);
+  const [selectedType, setSelectedType] = useState<ComponentType | null>((editComponent?.type as ComponentType | undefined) || null);
 
   if (!open) return null;
 
@@ -114,13 +102,25 @@ export default function ComponentBuilder({ open, onClose, onInsert }: BuilderPro
   };
 
   const handleClose = () => {
-    setStep(1);
-    setSelectedType(null);
+    setStep(editComponent ? 2 : 1);
+    setSelectedType((editComponent?.type as ComponentType | undefined) || null);
     onClose();
   };
 
-  const handleInsert = (html: string) => {
-    onInsert(html);
+  const handleInsertComponent: InsertComponent = (type, label, data) => {
+    const id = editComponent?.id || createComponentId(type);
+    const now = new Date().toISOString();
+    const component: CmsComponent = {
+      id,
+      type,
+      label,
+      data,
+      createdAt: editComponent?.createdAt || now,
+      updatedAt: now,
+    };
+    saveComponent(component);
+    if (!editComponent) onInsert?.(`{{component id="${id}"}}`);
+    onSaved?.();
     handleClose();
   };
 
@@ -131,7 +131,7 @@ export default function ComponentBuilder({ open, onClose, onInsert }: BuilderPro
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-border">
-          {step === 2 ? (
+          {step === 2 && !isEditing ? (
             <button onClick={handleBack} className="text-sm text--primary hover:underline font-medium">
               ← Zurück
             </button>
@@ -139,7 +139,7 @@ export default function ComponentBuilder({ open, onClose, onInsert }: BuilderPro
             <span />
           )}
           <h2 className="font-bold text-text text-center flex-1">
-            {step === 1 ? "Baustein einfügen" : COMPONENT_TYPES.find((c) => c.type === selectedType)?.label + " konfigurieren"}
+            {step === 1 ? "Baustein einfügen" : `${COMPONENT_TYPES.find((c) => c.type === selectedType)?.label} ${isEditing ? "bearbeiten" : "konfigurieren"}`}
           </h2>
           <button onClick={handleClose} className="text-text-muted hover:text-text text-xl w-8 h-8 flex items-center justify-center">
             ✕
@@ -149,7 +149,13 @@ export default function ComponentBuilder({ open, onClose, onInsert }: BuilderPro
         <div className="p-4">
           {step === 1 && <Step1 onSelect={handleTypeSelect} />}
           {step === 2 && selectedType && (
-            <Step2 type={selectedType} images={content.images} onInsert={handleInsert} />
+            <Step2
+              type={selectedType}
+              images={content.images}
+              initialData={editComponent?.data}
+              isEditing={isEditing}
+              onInsertComponent={handleInsertComponent}
+            />
           )}
         </div>
       </div>
@@ -176,25 +182,61 @@ function Step1({ onSelect }: { onSelect: (t: ComponentType) => void }) {
   );
 }
 
-function Step2({ type, images, onInsert }: { type: ComponentType; images: SiteImage[]; onInsert: (html: string) => void }) {
+function Step2({
+  type,
+  images,
+  initialData,
+  isEditing,
+  onInsertComponent,
+}: {
+  type: ComponentType;
+  images: SiteImage[];
+  initialData?: ComponentData;
+  isEditing: boolean;
+  onInsertComponent: InsertComponent;
+}) {
+  const submitLabel = isEditing ? "Änderungen speichern" : undefined;
   switch (type) {
     case "gallery":
-      return <GalleryConfig images={images} onInsert={onInsert} />;
+      return <GalleryConfig images={images} initialData={initialData} submitLabel={submitLabel || "Galerie einfügen"} onInsertComponent={onInsertComponent} />;
     case "slider":
-      return <SliderConfig images={images} onInsert={onInsert} />;
+      return <SliderConfig images={images} initialData={initialData} submitLabel={submitLabel || "Slider einfügen"} onInsertComponent={onInsertComponent} />;
     case "collapsible":
-      return <CollapsibleConfig onInsert={onInsert} />;
+      return <CollapsibleConfig initialData={initialData} submitLabel={submitLabel || "Aufklappbar einfügen"} onInsertComponent={onInsertComponent} />;
     case "accordion":
-      return <AccordionConfig onInsert={onInsert} />;
+      return <AccordionConfig initialData={initialData} submitLabel={submitLabel || "Akkordeon einfügen"} onInsertComponent={onInsertComponent} />;
     case "callout":
-      return <CalloutConfig onInsert={onInsert} />;
+      return <CalloutConfig initialData={initialData} submitLabel={submitLabel || "Hinweisbox einfügen"} onInsertComponent={onInsertComponent} />;
     case "table":
-      return <TableConfig onInsert={onInsert} />;
+      return <TableConfig initialData={initialData} submitLabel={submitLabel || "Tabelle einfügen"} onInsertComponent={onInsertComponent} />;
+    case "youtubeEmbed":
+      return <YouTubeEmbedConfig initialData={initialData} submitLabel={submitLabel || "YouTube-Video einfügen"} onInsertComponent={onInsertComponent} />;
+    case "pdfEmbed":
+      return <PdfEmbedConfig initialData={initialData} submitLabel={submitLabel || "PDF einbetten"} onInsertComponent={onInsertComponent} />;
+    case "cardGrid":
+      return <CardGridConfig images={images} initialData={initialData} submitLabel={submitLabel || "Kartenraster einfügen"} onInsertComponent={onInsertComponent} />;
+    case "steps":
+      return <StepsConfig images={images} initialData={initialData} submitLabel={submitLabel || "Prozessschritte einfügen"} onInsertComponent={onInsertComponent} />;
+    case "socialLinks":
+      return <SocialLinksConfig initialData={initialData} submitLabel={submitLabel || "Social Links einfügen"} onInsertComponent={onInsertComponent} />;
+    case "contactForm":
+      return <ContactFormConfig initialData={initialData} submitLabel={submitLabel || "Kontaktformular einfügen"} onInsertComponent={onInsertComponent} />;
+    case "newsletterSignup":
+      return <NewsletterSignupConfig initialData={initialData} submitLabel={submitLabel || "Newsletter-Formular einfügen"} onInsertComponent={onInsertComponent} />;
   }
 }
 
-function useImageSelection() {
-  const [selected, setSelected] = useState<{ image: SiteImage; copyright: string }[]>([]);
+function useImageSelection(images: SiteImage[], initialData?: ComponentData) {
+  const [selected, setSelected] = useState<{ image: SiteImage; copyright: string }[]>(() => {
+    const entries = Array.isArray(initialData?.images) ? initialData.images : [];
+    return entries.flatMap((entry) => {
+      if (!entry || typeof entry !== "object") return [];
+      const imageId = String((entry as { imageId?: unknown }).imageId || "");
+      const image = images.find((img) => img.id === imageId);
+      if (!image) return [];
+      return [{ image, copyright: String((entry as { copyright?: unknown }).copyright || image.copyright || "Privat") }];
+    });
+  });
 
   const toggle = (img: SiteImage) => {
     setSelected((prev) => {
@@ -213,6 +255,18 @@ function useImageSelection() {
   };
 
   return { selected, toggle, updateCopyright, remove };
+}
+
+function dataString(data: ComponentData | undefined, key: string, fallback = ""): string {
+  const value = data?.[key];
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? String(value) : fallback;
+}
+
+function dataStringArray(data: ComponentData | undefined, key: string): string[][] | null {
+  const rows = data?.[key];
+  if (!Array.isArray(rows)) return null;
+  const normalized = rows.map((row) => Array.isArray(row) ? row.map((cell) => String(cell ?? "")) : []);
+  return normalized.length > 0 ? normalized : null;
 }
 
 function SelectedImages({
@@ -253,19 +307,16 @@ function SelectedImages({
   );
 }
 
-function GalleryConfig({ images, onInsert }: { images: SiteImage[]; onInsert: (h: string) => void }) {
-  const [columns, setColumns] = useState("3");
-  const { selected, toggle, updateCopyright, remove } = useImageSelection();
+function GalleryConfig({ images, initialData, submitLabel, onInsertComponent }: { images: SiteImage[]; initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [columns, setColumns] = useState(dataString(initialData, "columns", "3"));
+  const { selected, toggle, updateCopyright, remove } = useImageSelection(images, initialData);
 
   const generate = () => {
     if (selected.length === 0) return;
-    const figures = selected
-      .map(
-        (s) =>
-          `  <figure>\n    <img src="${s.image.dataUrl}" alt="${s.image.name}" />\n    <figcaption>📷 ${s.copyright}</figcaption>\n  </figure>`
-      )
-      .join("\n");
-    onInsert(`<div class="gf-gallery" data-columns="${columns}">\n${figures}\n</div>`);
+    onInsertComponent("gallery", "Galerie", {
+      columns,
+      images: selected.map((s) => ({ imageId: s.image.id, copyright: s.copyright })),
+    });
   };
 
   return (
@@ -295,25 +346,22 @@ function GalleryConfig({ images, onInsert }: { images: SiteImage[]; onInsert: (h
         disabled={selected.length === 0}
         className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        Galerie einfügen
+        {submitLabel}
       </button>
     </div>
   );
 }
 
-function SliderConfig({ images, onInsert }: { images: SiteImage[]; onInsert: (h: string) => void }) {
-  const [autoplay, setAutoplay] = useState("5000");
-  const { selected, toggle, updateCopyright, remove } = useImageSelection();
+function SliderConfig({ images, initialData, submitLabel, onInsertComponent }: { images: SiteImage[]; initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [autoplay, setAutoplay] = useState(dataString(initialData, "autoplay", "5000"));
+  const { selected, toggle, updateCopyright, remove } = useImageSelection(images, initialData);
 
   const generate = () => {
     if (selected.length === 0) return;
-    const figures = selected
-      .map(
-        (s) =>
-          `  <figure>\n    <img src="${s.image.dataUrl}" alt="${s.image.name}" />\n    <figcaption>📷 ${s.copyright}</figcaption>\n  </figure>`
-      )
-      .join("\n");
-    onInsert(`<div class="gf-slider" data-autoplay="${autoplay}">\n${figures}\n</div>`);
+    onInsertComponent("slider", "Slider", {
+      autoplay,
+      images: selected.map((s) => ({ imageId: s.image.id, copyright: s.copyright })),
+    });
   };
 
   return (
@@ -343,20 +391,22 @@ function SliderConfig({ images, onInsert }: { images: SiteImage[]; onInsert: (h:
         disabled={selected.length === 0}
         className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        Slider einfügen
+        {submitLabel}
       </button>
     </div>
   );
 }
 
-function CollapsibleConfig({ onInsert }: { onInsert: (h: string) => void }) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+function CollapsibleConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [title, setTitle] = useState(dataString(initialData, "title"));
+  const [content, setContent] = useState(dataString(initialData, "content"));
 
   const generate = () => {
     if (!title.trim()) return;
-    const inner = content.trim() || "<p>Inhalt hier eingeben…</p>";
-    onInsert(`<details class="gf-collapsible">\n  <summary>${title}</summary>\n  <div>${inner}</div>\n</details>`);
+    onInsertComponent("collapsible", title.trim(), {
+      title: title.trim(),
+      content: content.trim() || "Inhalt hier eingeben...",
+    });
   };
 
   return (
@@ -387,14 +437,21 @@ function CollapsibleConfig({ onInsert }: { onInsert: (h: string) => void }) {
         disabled={!title.trim()}
         className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        Aufklappbar einfügen
+        {submitLabel}
       </button>
     </div>
   );
 }
 
-function AccordionConfig({ onInsert }: { onInsert: (h: string) => void }) {
-  const [sections, setSections] = useState<AccordionSection[]>([{ title: "", content: "" }]);
+function AccordionConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [sections, setSections] = useState<AccordionSection[]>(() => {
+    const items = Array.isArray(initialData?.items) ? initialData.items : [];
+    const normalized = items.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      return [{ title: dataString(item as ComponentData, "title"), content: dataString(item as ComponentData, "content") }];
+    });
+    return normalized.length > 0 ? normalized : [{ title: "", content: "" }];
+  });
 
   const updateSection = (i: number, field: "title" | "content", value: string) => {
     setSections((prev) => prev.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)));
@@ -406,13 +463,9 @@ function AccordionConfig({ onInsert }: { onInsert: (h: string) => void }) {
   const generate = () => {
     const valid = sections.filter((s) => s.title.trim());
     if (valid.length === 0) return;
-    const items = valid
-      .map(
-        (s, i) =>
-          `  <details class="gf-accordion-item"${i === 0 ? " open" : ""}>\n    <summary>${s.title}</summary>\n    <div>${s.content.trim() || "<p>Inhalt hier eingeben…</p>"}</div>\n  </details>`
-      )
-      .join("\n");
-    onInsert(`<div class="gf-accordion">\n${items}\n</div>`);
+    onInsertComponent("accordion", "Akkordeon", {
+      items: valid.map((s) => ({ title: s.title.trim(), content: s.content.trim() || "Inhalt hier eingeben..." })),
+    });
   };
 
   return (
@@ -452,19 +505,24 @@ function AccordionConfig({ onInsert }: { onInsert: (h: string) => void }) {
         disabled={sections.every((s) => !s.title.trim())}
         className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        Akkordeon einfügen
+        {submitLabel}
       </button>
     </div>
   );
 }
 
-function CalloutConfig({ onInsert }: { onInsert: (h: string) => void }) {
-  const [calloutType, setCalloutType] = useState<CalloutType>("info");
-  const [content, setContent] = useState("");
+function CalloutConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [calloutType, setCalloutType] = useState<CalloutType>(() => {
+    const value = dataString(initialData, "calloutType", "info");
+    return CALLOUT_STYLES.some((style) => style.type === value) ? value as CalloutType : "info";
+  });
+  const [content, setContent] = useState(dataString(initialData, "content"));
 
   const generate = () => {
-    const inner = content.trim() || "<p>Hinweis hier eingeben…</p>";
-    onInsert(`<div class="gf-callout" data-type="${calloutType}">\n  ${inner}\n</div>`);
+    onInsertComponent("callout", "Hinweisbox", {
+      calloutType,
+      content: content.trim() || "Hinweis hier eingeben...",
+    });
   };
 
   return (
@@ -510,20 +568,21 @@ function CalloutConfig({ onInsert }: { onInsert: (h: string) => void }) {
         onClick={generate}
         className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors"
       >
-        Hinweisbox einfügen
+        {submitLabel}
       </button>
     </div>
   );
 }
 
-function TableConfig({ onInsert }: { onInsert: (h: string) => void }) {
-  const [rows, setRows] = useState(3);
-  const [cols, setCols] = useState(3);
-  const [cells, setCells] = useState<string[][]>([
+function TableConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const initialRows = dataStringArray(initialData, "rows") || [
     ["Termin", "Event", "Ort"],
     ["15.03.", "Baumaktion", "Goldsteinpark"],
     ["02.04.", "Osterwanderung", "Goldsteinturm"],
-  ]);
+  ];
+  const [rows, setRows] = useState(initialRows.length);
+  const [cols, setCols] = useState(initialRows[0]?.length || 1);
+  const [cells, setCells] = useState<string[][]>(initialRows);
 
   const ensureGrid = (r: number, c: number) => {
     const grid: string[][] = [];
@@ -545,13 +604,7 @@ function TableConfig({ onInsert }: { onInsert: (h: string) => void }) {
 
   const generate = () => {
     if (cells.length === 0) return;
-    const headerRow = cells[0].map((c) => `      <th>${c || "&nbsp;"}</th>`).join("\n");
-    const bodyRows = cells
-      .slice(1)
-      .map((row) => `    <tr>\n${row.map((c) => `      <td>${c || "&nbsp;"}</td>`).join("\n")}\n    </tr>`)
-      .join("\n");
-    const html = `<div class="gf-table-wrap">\n  <table>\n    <thead>\n    <tr>\n${headerRow}\n    </tr>\n    </thead>\n    <tbody>\n${bodyRows}\n    </tbody>\n  </table>\n</div>`;
-    onInsert(html);
+    onInsertComponent("table", "Tabelle", { rows: cells });
   };
 
   return (
@@ -609,8 +662,579 @@ function TableConfig({ onInsert }: { onInsert: (h: string) => void }) {
         onClick={generate}
         className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors"
       >
-        Tabelle einfügen
+        {submitLabel}
       </button>
     </div>
   );
+}
+
+function parseYouTubeVideoId(input: string): string | null {
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{1,20}$/.test(trimmed)) return trimmed;
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be")) {
+      let id = url.searchParams.get("v");
+      if (id) return id;
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (parts.length > 0) {
+        const last = parts[parts.length - 1];
+        if (/^[a-zA-Z0-9_-]{1,20}$/.test(last)) return last;
+      }
+    }
+  } catch { /* not a URL, treat as raw ID */ }
+  return null;
+}
+
+function YouTubeEmbedConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [videoInput, setVideoInput] = useState(dataString(initialData, "videoId"));
+  const [title, setTitle] = useState(dataString(initialData, "title"));
+  const [aspect, setAspect] = useState(dataString(initialData, "aspect", "16:9"));
+  const [error, setError] = useState("");
+
+  const generate = () => {
+    const videoId = parseYouTubeVideoId(videoInput);
+    if (!videoId) {
+      setError("Ungültige YouTube-URL oder Video-ID");
+      return;
+    }
+    setError("");
+    const safeTitle = title.trim() || "YouTube-Video";
+    onInsertComponent("youtubeEmbed", safeTitle, { videoId, title: safeTitle, aspect });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">YouTube-URL oder Video-ID *</label>
+        <input
+          type="text"
+          value={videoInput}
+          onChange={(e) => { setVideoInput(e.target.value); setError(""); }}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+          placeholder="z.B. https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        />
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">Titel</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+          placeholder="z.B. Vorstellung der Floral Manufaktur"
+        />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Seitenverhältnis:</p>
+        <PillGroup
+          options={[
+            { value: "16:9", label: "16:9" },
+            { value: "4:3", label: "4:3" },
+            { value: "1:1", label: "1:1" },
+            { value: "9:16", label: "9:16" },
+          ]}
+          value={aspect}
+          onChange={setAspect}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={generate}
+        disabled={!videoInput.trim()}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+function PdfEmbedConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [src, setSrc] = useState(dataString(initialData, "src"));
+  const [title, setTitle] = useState(dataString(initialData, "title"));
+  const [height, setHeight] = useState(dataString(initialData, "height", "700"));
+  const [error, setError] = useState("");
+
+  const generate = () => {
+    const trimmed = src.trim();
+    if (!trimmed || !/\.pdf$/i.test(trimmed.split("?")[0].split("#")[0])) {
+      setError("Pfad muss auf .pdf enden und auf der gleichen Seite liegen");
+      return;
+    }
+    if (!trimmed.startsWith("/")) {
+      setError("Pfad muss mit / beginnen (gleich-origin)");
+      return;
+    }
+    const h = parseInt(height, 10);
+    if (isNaN(h) || h < 300 || h > 1200) {
+      setError("Höhe muss zwischen 300 und 1200 liegen");
+      return;
+    }
+    setError("");
+    const safeTitle = title.trim() || "PDF-Dokument";
+    onInsertComponent("pdfEmbed", safeTitle, { src: trimmed, title: safeTitle, height: h });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">PDF-Pfad *</label>
+        <input
+          type="text"
+          value={src}
+          onChange={(e) => { setSrc(e.target.value); setError(""); }}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+          placeholder="z.B. /downloads/preisliste.pdf"
+        />
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">Titel</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+          placeholder="z.B. Preisliste"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">Höhe (300-1200)</label>
+        <input
+          type="number"
+          min="300"
+          max="1200"
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={generate}
+        disabled={!src.trim()}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+interface CardEntry {
+  image: SiteImage | null;
+  title: string;
+  text: string;
+  url: string;
+  cta: string;
+}
+
+function CardGridConfig({ images, initialData, submitLabel, onInsertComponent }: { images: SiteImage[]; initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [variant, setVariant] = useState(dataString(initialData, "variant", "service"));
+  const [columns, setColumns] = useState(dataString(initialData, "columns", "auto"));
+  const [cards, setCards] = useState<CardEntry[]>(() => {
+    const storedCards = Array.isArray(initialData?.cards) ? initialData.cards : [];
+    const normalized = storedCards.flatMap((card) => {
+      if (!card || typeof card !== "object") return [];
+      const data = card as ComponentData;
+      const imageId = dataString(data, "imageId");
+      return [{
+        image: images.find((img) => img.id === imageId) || null,
+        title: dataString(data, "title"),
+        text: dataString(data, "text"),
+        url: dataString(data, "url"),
+        cta: dataString(data, "cta"),
+      }];
+    });
+    return normalized.length > 0 ? normalized : [{ image: null, title: "", text: "", url: "", cta: "" }];
+  });
+
+  const updateCard = (i: number, field: keyof CardEntry, value: string | SiteImage | null) => {
+    setCards((prev) => prev.map((c, idx) => (idx === i ? { ...c, [field]: value } : c)));
+  };
+
+  const addCard = () => setCards((prev) => [...prev, { image: null, title: "", text: "", url: "", cta: "" }]);
+  const removeCard = (i: number) => setCards((prev) => prev.filter((_, idx) => idx !== i));
+
+  const generate = () => {
+    const valid = cards.filter((c) => c.title.trim());
+    if (valid.length === 0) return;
+
+    onInsertComponent("cardGrid", "Kartenraster", {
+      variant,
+      columns,
+      cards: valid.map((card) => ({
+        imageId: card.image?.id,
+        copyright: card.image?.copyright,
+        title: card.title,
+        text: card.text,
+        url: card.url,
+        cta: card.cta,
+      })),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Variante:</p>
+        <PillGroup
+          options={[
+            { value: "service", label: "Service" },
+            { value: "imageOverlay", label: "Bildüberlagert" },
+            { value: "compact", label: "Kompakt" },
+            { value: "feature", label: "Feature" },
+          ]}
+          value={variant}
+          onChange={setVariant}
+        />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Spalten:</p>
+        <PillGroup
+          options={[
+            { value: "auto", label: "Auto" },
+            { value: "2", label: "2" },
+            { value: "3", label: "3" },
+            { value: "4", label: "4" },
+          ]}
+          value={columns}
+          onChange={setColumns}
+        />
+      </div>
+
+      <div className="space-y-3">
+        {cards.map((card, i) => (
+          <div key={i} className="border border-border rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-text-muted">Karte {i + 1}</span>
+              {cards.length > 1 && (
+                <button type="button" onClick={() => removeCard(i)} className="text-red-400 hover:text-red-600 text-xs">
+                  ✕
+                </button>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-text-muted mb-1">Bild (optional):</p>
+              <div className="flex gap-1 flex-wrap">
+                {images.slice(0, 8).map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => updateCard(i, "image", card.image?.id === img.id ? null : img)}
+                    className={`w-10 h-10 rounded overflow-hidden border-2 transition-colors ${
+                      card.image?.id === img.id ? "border--primary" : "border-transparent"
+                    }`}
+                  >
+                    <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+                {images.length === 0 && <span className="text-xs text-text-muted">Keine Bilder</span>}
+              </div>
+            </div>
+            <input
+              type="text"
+              value={card.title}
+              onChange={(e) => updateCard(i, "title", e.target.value)}
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+              placeholder="Titel *"
+            />
+            <input
+              type="text"
+              value={card.text}
+              onChange={(e) => updateCard(i, "text", e.target.value)}
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+              placeholder="Beschreibung (optional)"
+            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={card.url}
+                onChange={(e) => updateCard(i, "url", e.target.value)}
+                className="flex-1 px-3 py-1.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+                placeholder="Link-URL (optional)"
+              />
+              <input
+                type="text"
+                value={card.cta}
+                onChange={(e) => updateCard(i, "cta", e.target.value)}
+                className="w-28 px-3 py-1.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+                placeholder="CTA-Text"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button type="button" onClick={addCard} className="text-sm text--primary hover:underline font-medium">
+        + Karte hinzufügen
+      </button>
+      <button
+        type="button"
+        onClick={generate}
+        disabled={cards.every((c) => !c.title.trim())}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+interface StepEntry {
+  image: SiteImage | null;
+  title: string;
+  text: string;
+}
+
+function StepsConfig({ images, initialData, submitLabel, onInsertComponent }: { images: SiteImage[]; initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [variant, setVariant] = useState(dataString(initialData, "variant", "cards"));
+  const [columns, setColumns] = useState(dataString(initialData, "columns", "4"));
+  const [numbered, setNumbered] = useState(dataString(initialData, "numbered", "false"));
+  const [steps, setSteps] = useState<StepEntry[]>(() => {
+    const storedSteps = Array.isArray(initialData?.steps) ? initialData.steps : [];
+    const normalized = storedSteps.flatMap((step) => {
+      if (!step || typeof step !== "object") return [];
+      const data = step as ComponentData;
+      const imageId = dataString(data, "imageId");
+      return [{
+        image: images.find((img) => img.id === imageId) || null,
+        title: dataString(data, "title"),
+        text: dataString(data, "text"),
+      }];
+    });
+    return normalized.length > 0 ? normalized : [{ image: null, title: "", text: "" }];
+  });
+
+  const updateStep = (i: number, field: keyof StepEntry, value: string | SiteImage | null) => {
+    setSteps((prev) => prev.map((s, idx) => (idx === i ? { ...s, [field]: value } : s)));
+  };
+
+  const addStep = () => setSteps((prev) => [...prev, { image: null, title: "", text: "" }]);
+  const removeStep = (i: number) => setSteps((prev) => prev.filter((_, idx) => idx !== i));
+
+  const generate = () => {
+    const valid = steps.filter((s) => s.title.trim());
+    if (valid.length === 0) return;
+
+    onInsertComponent("steps", "Prozessschritte", {
+      variant,
+      columns,
+      numbered: numbered === "true",
+      steps: valid.map((step) => ({
+        imageId: step.image?.id,
+        copyright: step.image?.copyright,
+        title: step.title,
+        text: step.text,
+      })),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Variante:</p>
+        <PillGroup
+          options={[
+            { value: "cards", label: "Karten" },
+            { value: "timeline", label: "Timeline" },
+            { value: "icons", label: "Icons" },
+          ]}
+          value={variant}
+          onChange={setVariant}
+        />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Spalten:</p>
+        <PillGroup
+          options={[
+            { value: "2", label: "2" },
+            { value: "3", label: "3" },
+            { value: "4", label: "4" },
+          ]}
+          value={columns}
+          onChange={setColumns}
+        />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Automatisch nummerieren:</p>
+        <PillGroup
+          options={[
+            { value: "false", label: "Nein" },
+            { value: "true", label: "Ja" },
+          ]}
+          value={numbered}
+          onChange={setNumbered}
+        />
+      </div>
+
+      <div className="space-y-3">
+        {steps.map((step, i) => (
+          <div key={i} className="border border-border rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-text-muted">Schritt {i + 1}</span>
+              {steps.length > 1 && (
+                <button type="button" onClick={() => removeStep(i)} className="text-red-400 hover:text-red-600 text-xs">
+                  ✕
+                </button>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-text-muted mb-1">Bild (optional):</p>
+              <div className="flex gap-1 flex-wrap">
+                {images.slice(0, 8).map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => updateStep(i, "image", step.image?.id === img.id ? null : img)}
+                    className={`w-10 h-10 rounded overflow-hidden border-2 transition-colors ${
+                      step.image?.id === img.id ? "border--primary" : "border-transparent"
+                    }`}
+                  >
+                    <img src={img.dataUrl} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+                {images.length === 0 && <span className="text-xs text-text-muted">Keine Bilder</span>}
+              </div>
+            </div>
+            <input
+              type="text"
+              value={step.title}
+              onChange={(e) => updateStep(i, "title", e.target.value)}
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+              placeholder="Titel *"
+            />
+            <textarea
+              value={step.text}
+              onChange={(e) => updateStep(i, "text", e.target.value)}
+              rows={2}
+              className="w-full px-3 py-1.5 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+              placeholder="Beschreibung (optional)"
+            />
+          </div>
+        ))}
+      </div>
+
+      <button type="button" onClick={addStep} className="text-sm text--primary hover:underline font-medium">
+        + Schritt hinzufügen
+      </button>
+      <button
+        type="button"
+        onClick={generate}
+        disabled={steps.every((s) => !s.title.trim())}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+function SocialLinksConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [variant, setVariant] = useState(dataString(initialData, "variant", "icons"));
+
+  const generate = () => {
+    onInsertComponent("socialLinks", "Social Links", { variant });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-medium text-text mb-2">Darstellung:</p>
+        <PillGroup
+          options={[
+            { value: "icons", label: "Icons" },
+            { value: "list", label: "Liste" },
+            { value: "cards", label: "Karten" },
+          ]}
+          value={variant}
+          onChange={setVariant}
+        />
+      </div>
+      <p className="text-xs text-text-muted">
+        Die Links werden automatisch aus den konfigurierten Social-Media-Profilen geladen.
+      </p>
+      <button
+        type="button"
+        onClick={generate}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+function ContactFormConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [formId, setFormId] = useState(dataString(initialData, "formId", "default"));
+
+  const generate = () => {
+    onInsertComponent("contactForm", "Kontaktformular", { formId });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">Formular-ID</label>
+        <input
+          type="text"
+          value={formId}
+          onChange={(e) => setFormId(e.target.value)}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+          placeholder="z.B. default"
+        />
+      </div>
+      <p className="text-xs text-text-muted">
+        Das Kontaktformular wird mit Name, E-Mail, Telefon, Betreff und Nachricht angezeigt.
+      </p>
+      <button
+        type="button"
+        onClick={generate}
+        disabled={!formId.trim()}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+function NewsletterSignupConfig({ initialData, submitLabel, onInsertComponent }: { initialData?: ComponentData; submitLabel: string; onInsertComponent: InsertComponent }) {
+  const [formId, setFormId] = useState(dataString(initialData, "formId", "default"));
+
+  const generate = () => {
+    onInsertComponent("newsletterSignup", "Newsletter", { formId });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-text mb-1.5">Formular-ID</label>
+        <input
+          type="text"
+          value={formId}
+          onChange={(e) => setFormId(e.target.value)}
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none text-sm"
+          placeholder="z.B. default"
+        />
+      </div>
+      <p className="text-xs text-text-muted">
+        Newsletter-Anmeldungsformular mit E-Mail-Feld und Datenschutz-Checkbox.
+      </p>
+      <button
+        type="button"
+        onClick={generate}
+        disabled={!formId.trim()}
+        className="w-full py-2.5 bg--primary text-white rounded-lg font-semibold hover:bg--primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {submitLabel}
+      </button>
+    </div>
+  );
+}
+
+function createComponentId(type: string): string {
+  return `${type}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }

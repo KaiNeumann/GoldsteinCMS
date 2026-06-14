@@ -5,6 +5,11 @@
  * finds custom HTML elements, and attaches interactivity.
  */
 
+import type { ReactElement } from "react";
+import { createRoot } from "react-dom/client";
+import { enhanceConsentEmbed, enhancePdf, enhanceYouTube } from "./enhancers/embeds";
+import { enhanceContactForm, enhanceNewsletterSignup, enhanceServiceSummary, enhanceSocialLinks } from "./enhancers/reactMounts";
+
 type Enhancer = (root: HTMLElement) => void;
 
 const enhancers: Enhancer[] = [];
@@ -28,11 +33,27 @@ export function cleanupCmsContent(root: HTMLElement) {
   }
 }
 
-function addCleanupCallback(root: HTMLElement, callback: () => void) {
+export function addCleanupCallback(root: HTMLElement, callback: () => void) {
   if (!cleanupCallbacks.has(root)) {
     cleanupCallbacks.set(root, []);
   }
   cleanupCallbacks.get(root)!.push(callback);
+}
+
+export function mountReactComponent(
+  container: HTMLElement,
+  component: ReactElement
+) {
+  const wrapper = document.createElement("div");
+  container.appendChild(wrapper);
+  const root = createRoot(wrapper);
+  root.render(component);
+  return () => {
+    root.unmount();
+    if (container.contains(wrapper)) {
+      container.removeChild(wrapper);
+    }
+  };
 }
 
 // Lightbox enhancer
@@ -476,6 +497,98 @@ function enhanceTable(root: HTMLElement) {
   });
 }
 
+// Card grid enhancer
+function enhanceCardGrid(root: HTMLElement) {
+  const grids = root.querySelectorAll(".gf-card-grid");
+  grids.forEach((grid) => {
+    const el = grid as HTMLElement;
+    const lightbox = el.getAttribute("data-lightbox") !== "false";
+    const cards = el.querySelectorAll(".gf-card");
+
+    cards.forEach((card) => {
+      const href = card.getAttribute("data-href");
+      if (href) {
+        (card as HTMLElement).setAttribute("tabindex", "0");
+        (card as HTMLElement).setAttribute("role", "link");
+        const handler = (e: Event) => {
+          if ((e as KeyboardEvent).key === "Enter" || (e as KeyboardEvent).key === " ") {
+            e.preventDefault();
+            window.location.href = href;
+          } else if (e.type === "click") {
+            window.location.href = href;
+          }
+        };
+        card.addEventListener("click", handler);
+        card.addEventListener("keydown", handler);
+        addCleanupCallback(el, () => {
+          card.removeEventListener("click", handler);
+          card.removeEventListener("keydown", handler);
+        });
+      }
+    });
+
+    if (lightbox) {
+      const figures = el.querySelectorAll("figure:has(> img)");
+      figures.forEach((figure) => {
+        const img = figure.querySelector("img");
+        if (!img) return;
+
+        (figure as HTMLElement).style.cursor = "zoom-in";
+        const handler = () => {
+          const images: { src: string; alt: string; caption: string }[] = [];
+          figures.forEach((fig) => {
+            const i = fig.querySelector("img");
+            const cap = fig.querySelector("figcaption");
+            if (i) {
+              images.push({
+                src: i.getAttribute("src") || "",
+                alt: i.getAttribute("alt") || "",
+                caption: cap?.textContent || "",
+              });
+            }
+          });
+          const idx = images.findIndex((imgData) => imgData.src === img.getAttribute("src"));
+          openLightbox(images, idx >= 0 ? idx : 0);
+        };
+        figure.addEventListener("click", handler);
+        addCleanupCallback(el, () => {
+          figure.removeEventListener("click", handler);
+          (figure as HTMLElement).style.cursor = "";
+        });
+      });
+    }
+
+    const imgs = el.querySelectorAll("img[loading]");
+    imgs.forEach((img) => img.setAttribute("loading", "lazy"));
+  });
+}
+
+// Steps enhancer
+function enhanceSteps(root: HTMLElement) {
+  const stepsContainers = root.querySelectorAll(".gf-steps");
+  stepsContainers.forEach((container) => {
+    const el = container as HTMLElement;
+    const numbered = el.getAttribute("data-numbered") === "true";
+    const steps = el.querySelectorAll(".gf-step");
+
+    if (numbered) {
+      steps.forEach((step, i) => {
+        (step as HTMLElement).setAttribute("data-step-number", String(i + 1));
+      });
+    }
+
+    const variant = el.getAttribute("data-variant");
+    if (variant === "timeline") {
+      steps.forEach((step) => {
+        const figure = step.querySelector("figure");
+        if (figure) {
+          (figure as HTMLElement).style.position = "relative";
+        }
+      });
+    }
+  });
+}
+
 // Register all enhancers
 registerEnhancer(enhanceLightbox);
 registerEnhancer(enhanceSlider);
@@ -484,3 +597,12 @@ registerEnhancer(enhanceCollapsible);
 registerEnhancer(enhanceAccordion);
 registerEnhancer(enhanceCallout);
 registerEnhancer(enhanceTable);
+registerEnhancer(enhanceSocialLinks);
+registerEnhancer(enhanceContactForm);
+registerEnhancer(enhanceNewsletterSignup);
+registerEnhancer(enhanceYouTube);
+registerEnhancer(enhanceConsentEmbed);
+registerEnhancer(enhanceServiceSummary);
+registerEnhancer(enhancePdf);
+registerEnhancer(enhanceCardGrid);
+registerEnhancer(enhanceSteps);

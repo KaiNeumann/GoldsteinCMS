@@ -13,101 +13,23 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useContent } from "../context/ContentContext";
 import { defaultContent, formatDate } from "../content/defaultContent";
 import type { Post, SiteConfig, SiteImage } from "../content/defaultContent";
+import { migrateSiteConfigToFields } from "../content/migrateSiteConfig";
+import { site } from "../siteConfig";
+import SchemaSettingsEditor from "../components/SchemaSettingsEditor";
 import CmsContent from "../components/CmsContent";
 import ComponentBuilder from "../components/ComponentBuilder";
+import AdminAuth from "../components/admin/AdminAuth";
+import ComponentsManager from "../components/admin/ComponentsManager";
 
 // ─── Main Admin Component ────────────────────────────────
 
 export default function Admin() {
-  const { validateAdminPassword, checkAdminSession, logoutAdminSession } = useContent();
-  const [authenticated, setAuthenticated] = useState(
-    () => sessionStorage.getItem("gf_admin_auth") === "true"
-  );
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const verifyExistingSession = async () => {
-      if (!sessionStorage.getItem("gf_admin_auth")) return;
-      const status = await checkAdminSession();
-      if (cancelled) return;
-      if (!status.success || !status.authenticated) {
-        sessionStorage.removeItem("gf_admin_auth");
-        setAuthenticated(false);
-      }
-    };
-
-    verifyExistingSession();
-    const interval = window.setInterval(verifyExistingSession, 60 * 1000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [checkAdminSession]);
-
-  if (!authenticated) {
-    return (
-      <div className="max-w-md mx-auto mt-16">
-        <div className="bg-surface-card rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from--primary to--primary-light p-6 text-center">
-            <svg className="w-12 h-12 text-white/80 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <h1 className="text-2xl font-bold text-white">Admin-Bereich</h1>
-            <p className="text-green-100 text-sm mt-1">Bitte melden Sie sich an</p>
-          </div>
-          <div className="p-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-                {error}
-              </div>
-            )}
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setIsLoggingIn(true);
-                const result = await validateAdminPassword(password);
-                setIsLoggingIn(false);
-                if (result.success) {
-                  setAuthenticated(true);
-                  sessionStorage.setItem("gf_admin_auth", "true");
-                  setError("");
-                } else {
-                  setError(result.error || "Falsches Passwort");
-                }
-              }}
-            >
-              <label className="block text-sm font-medium text-text mb-2">Passwort</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
-                placeholder="Passwort eingeben…"
-                autoFocus
-              />
-              <button
-                type="submit"
-                disabled={isLoggingIn}
-                className="w-full mt-4 bg--primary text-white py-3 rounded-lg font-semibold hover:bg--primary-dark transition-colors"
-              >
-                {isLoggingIn ? "Prüfe..." : "Anmelden"}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return <AdminDashboard onLogout={() => { sessionStorage.removeItem("gf_admin_auth"); logoutAdminSession(); setAuthenticated(false); }} />;
+  return <AdminAuth>{(onLogout) => <AdminDashboard onLogout={onLogout} />}</AdminAuth>;
 }
 
 // ─── Admin Dashboard ──────────────────────────────────────
 
-type Tab = "posts" | "editor" | "settings" | "images" | "github" | "export" | "deploy";
+type Tab = "posts" | "editor" | "settings" | "components" | "images" | "github" | "export" | "deploy";
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [activeTab, setActiveTab] = useState<Tab>("posts");
@@ -122,6 +44,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "posts", label: "Beiträge", icon: "📰" },
     { key: "settings", label: "Einstellungen", icon: "⚙️" },
+    { key: "components", label: "Bausteine", icon: "🧩" },
     { key: "images", label: "Bilder", icon: "🖼️" },
     { key: "github", label: "Veröffentlichen", icon: "🚀" },
     { key: "export", label: "Export/Import", icon: "📦" },
@@ -172,6 +95,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       {(activeTab === "posts" && !editingPost) && <PostsList onEdit={(post) => { setEditingPost(post); setActiveTab("editor"); }} onNewPost={() => { setEditingPost({ id: "", date: new Date().toISOString().split("T")[0], author: "", title: "", content: "" }); setActiveTab("editor"); }} />}
       {activeTab === "editor" && <PostEditor post={editingPost} onCancel={() => { setEditingPost(null); setActiveTab("posts"); }} onSaved={() => { setEditingPost(null); setActiveTab("posts"); showStatus("success", "Beitrag gespeichert!"); }} />}
       {activeTab === "settings" && <SettingsEditor onSaved={() => showStatus("success", "Einstellungen gespeichert!")} />}
+      {activeTab === "components" && <ComponentsManager onStatus={showStatus} />}
       {activeTab === "github" && <GitHubSetup onStatus={showStatus} onLogout={onLogout} />}
       {activeTab === "export" && <ExportImport onStatus={showStatus} />}
       {activeTab === "images" && <ImageLibrary onStatus={showStatus} />}
@@ -313,7 +237,7 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
         {/* Content with Edit/Preview toggle */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm font-medium text-text">Inhalt (HTML)</label>
+            <label className="text-sm font-medium text-text">Inhalt (Markdown, HTML weiterhin möglich)</label>
             <div className="flex bg-surface-alt rounded-lg p-0.5">
               <button
                 onClick={() => setShowPreview(false)}
@@ -344,15 +268,15 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
             <>
               {/* Quick formatting toolbar */}
               <div className="flex gap-1 mb-1.5 flex-wrap relative">
-                <FormatBtn label="Fett" icon={faBold} before="<strong>" after="</strong>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="Kursiv" icon={faItalic} before="<em>" after="</em>" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="Fett" icon={faBold} before="**" after="**" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="Kursiv" icon={faItalic} before="_" after="_" form={form} setForm={setForm} textareaId="post-content" />
                 <FormatBtn label="Unterstrichen" icon={faUnderline} before="<u>" after="</u>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="H1" icon={faHeading} before="<h1>" after="</h1>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="H2" icon={faHeading} before="<h2>" after="</h2>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="H3" icon={faHeading} before="<h3>" after="</h3>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="Absatz" icon={faParagraph} before="<p>" after="</p>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="Liste" icon={faListUl} before="<ul>\n<li>" after="</li>\n</ul>" form={form} setForm={setForm} textareaId="post-content" />
-                <FormatBtn label="Link" icon={faLink} before='<a href="URL">' after="</a>" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="H1" icon={faHeading} before="# " after="" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="H2" icon={faHeading} before="## " after="" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="H3" icon={faHeading} before="### " after="" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="Absatz" icon={faParagraph} before="\n\n" after="\n\n" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="Liste" icon={faListUl} before="- " after="" form={form} setForm={setForm} textareaId="post-content" />
+                <FormatBtn label="Link" icon={faLink} before="[" after="](URL)" form={form} setForm={setForm} textareaId="post-content" />
                 <ImagePickerButton form={form} setForm={setForm} textareaId="post-content" />
                 <button
                   type="button"
@@ -369,10 +293,10 @@ function PostEditor({ post, onCancel, onSaved }: { post: Post | null; onCancel: 
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
                 rows={15}
                 className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring--primary focus:border-transparent outline-none font-mono text-sm leading-relaxed"
-                placeholder="<p>Ihr Inhalt in HTML…</p>"
+                placeholder="## Überschrift\n\nIhr Inhalt in Markdown…"
               />
               <p className="text-xs text-text-muted mt-1">
-                Tipp: Nutzen Sie HTML-Tags wie &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;, &lt;a href="…"&gt;
+                Tipp: Nutzen Sie Markdown wie <code>## Überschrift</code>, <code>**fett**</code>, <code>- Liste</code>, <code>[Link](https://...)</code>. Bestehendes HTML funktioniert weiterhin.
               </p>
             </>
           )}
@@ -426,8 +350,13 @@ function FormatBtn({ label, icon, before, after, form, setForm, textareaId }: {
 // ─── Settings Editor ───────────────────────────────────────
 
 function SettingsEditor({ onSaved }: { onSaved: () => void }) {
-  const { content, updateSiteConfig } = useContent();
+  const { content, updateSiteConfig, updateFields } = useContent();
   const [config, setConfig] = useState<SiteConfig>(content.siteConfig);
+  const [fields, setFields] = useState<Record<string, unknown>>(() => {
+    if (content.fields && Object.keys(content.fields).length > 0) return content.fields;
+    return migrateSiteConfigToFields(content.siteConfig);
+  });
+  const contentSchema = site.contentSchema;
   const pageContent = config.pageContent || defaultContent.siteConfig.pageContent;
 
   const handleSave = () => {
@@ -435,9 +364,8 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
       alert("Bitte geben Sie einen Bildquellennachweis für das Banner-Bild an.");
       return;
     }
-    if (config.aboutImage && !config.aboutImageCredit?.trim()) {
-      alert("Bitte geben Sie einen Bildquellennachweis für das Über-uns-Bild an.");
-      return;
+    if (contentSchema) {
+      updateFields(fields);
     }
     updateSiteConfig(config);
     onSaved();
@@ -457,139 +385,45 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
             Hier pflegen Sie alle allgemeinen Informationen der Website – von Vereinsdaten über Kontaktadressen bis hin zu Seiteninhalten.
           </p>
           <ul className="text-sm text-amber-800 mt-2 space-y-1 list-disc list-inside">
-            <li>Banner- und Über-uns-Bild erfordern zwingend einen Bildquellennachweis</li>
+            <li>Bannerbilder erfordern zwingend einen Bildquellennachweis</li>
             <li>Seiteninhalte (Startseite, Impressum, Datenschutz usw.) können direkt hier bearbeitet werden</li>
             <li>Änderungen erst nach Veröffentlichung im Tab „Veröffentlichen" wirksam</li>
           </ul>
         </div>
-        {/* Basic info */}
-        <Section title="Allgemein" collapsible>
-          <Field label="Vereinsname" value={config.name} onChange={(v) => setConfig({ ...config, name: v })} />
-          <Field label="Kurzname" value={config.shortName} onChange={(v) => setConfig({ ...config, shortName: v })} />
-          <Field label="Untertitel" value={config.tagline} onChange={(v) => setConfig({ ...config, tagline: v })} />
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Gegründet" value={config.founded} onChange={(v) => setConfig({ ...config, founded: v })} />
-            <Field label="Mitglieder" value={config.members} onChange={(v) => setConfig({ ...config, members: v })} />
-          </div>
-        </Section>
 
-        {/* Banner Image */}
-        <Section title="Banner-Bild (Startseite)" collapsible>
-          <p className="text-xs text-text-muted mb-2">Laden Sie ein Bild für den Banner auf der Startseite hoch. Empfohlen: 1200×400px, max. 500 KB.</p>
-          {config.bannerImage ? (
-            <div className="space-y-3">
-              <div className="relative rounded-lg overflow-hidden h-32 bg-surface-alt">
-                <img src={config.bannerImage} alt="Banner" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+        {contentSchema ? (
+          <SchemaSettingsEditor
+            schema={contentSchema}
+            values={fields}
+            onChange={setFields}
+          />
+        ) : (
+          <>
+            {/* Basic info */}
+            <Section title="Allgemein" collapsible>
+              <Field label="Vereinsname" value={config.name} onChange={(v) => setConfig({ ...config, name: v })} />
+              <Field label="Kurzname" value={config.shortName} onChange={(v) => setConfig({ ...config, shortName: v })} />
+              <Field label="Untertitel" value={config.tagline} onChange={(v) => setConfig({ ...config, tagline: v })} />
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Gegründet" value={config.founded} onChange={(v) => setConfig({ ...config, founded: v })} />
+                <Field label="Mitglieder" value={config.members} onChange={(v) => setConfig({ ...config, members: v })} />
               </div>
-              <button
-                onClick={() => setConfig({ ...config, bannerImage: "", bannerImageCredit: "" })}
-                className="text-sm text-red-600 hover:text-red-800 font-medium font-sans"
-              >
-                ✕ Banner-Bild entfernen
-              </button>
-            </div>
-          ) : (
-            <div>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 500 * 1024) { alert("Bild zu groß! Max. 500 KB."); return; }
-                  const reader = new FileReader();
-                  reader.onload = () => setConfig({ ...config, bannerImage: reader.result as string });
-                  reader.readAsDataURL(file);
-                }}
-                className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text--primary hover:file:bg-green-100"
-              />
-              <p className="text-xs text-text-muted mt-1">Aktuell wird ein grüner Gradient als Banner angezeigt.</p>
-            </div>
-          )}
-          {config.bannerImage && (
-            <div className="mt-3">
-              <Field
-                label="Bildquellennachweis / Urheberrecht *"
-                value={config.bannerImageCredit || ""}
-                onChange={(v) => setConfig({ ...config, bannerImageCredit: v })}
-              />
-              <p className="text-[11px] text-text-muted mt-1">
-                Geben Sie den Urheber an (z. B. <code>Gerd Hildebrand</code> oder <code>© Name / Stockagentur</code>). Das Feld darf nicht leer sein.
-              </p>
-            </div>
-          )}
-        </Section>
+            </Section>
 
-        {/* Contact */}
-        <Section title="Kontakt" collapsible>
-          <Field label="E-Mail" value={config.email} onChange={(v) => setConfig({ ...config, email: v })} type="email" />
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Telefon (mobil)" value={config.phone} onChange={(v) => setConfig({ ...config, phone: v })} />
-            <Field label="Hinweis" value={config.phoneNote} onChange={(v) => setConfig({ ...config, phoneNote: v })} />
-          </div>
-          <Field label="Telefon (fest)" value={config.phoneLandline} onChange={(v) => setConfig({ ...config, phoneLandline: v })} />
-        </Section>
-
-        {/* Address */}
-        <Section title="Adresse" collapsible>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-1">
-              <Field label="Straße" value={config.address.street} onChange={(v) => setConfig({ ...config, address: { ...config.address, street: v } })} />
-            </div>
-            <Field label="PLZ" value={config.address.zip} onChange={(v) => setConfig({ ...config, address: { ...config.address, zip: v } })} />
-            <Field label="Ort" value={config.address.city} onChange={(v) => setConfig({ ...config, address: { ...config.address, city: v } })} />
-          </div>
-        </Section>
-
-        {/* Bank Account */}
-        <Section title="Spendenkonto" collapsible>
-          <Field label="Bank" value={config.bankAccount.bank} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, bank: v } })} />
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Kontonummer" value={config.bankAccount.accountNumber} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, accountNumber: v } })} />
-            <Field label="BLZ" value={config.bankAccount.blz} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, blz: v } })} />
-          </div>
-          <Field label="IBAN" value={config.bankAccount.iban} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, iban: v } })} />
-          <Field label="BIC" value={config.bankAccount.bic} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, bic: v } })} />
-        </Section>
-
-        {/* Registry */}
-        <Section title="Register" collapsible>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Gericht" value={config.registry.court} onChange={(v) => setConfig({ ...config, registry: { ...config.registry, court: v } })} />
-            <Field label="Registernummer" value={config.registry.number} onChange={(v) => setConfig({ ...config, registry: { ...config.registry, number: v } })} />
-          </div>
-        </Section>
-
-        {/* Board */}
-        <Section title="Vorstand" collapsible>
-          <BoardEditor board={config.board} onChange={(board) => setConfig({ ...config, board })} />
-        </Section>
-
-        <Section title="Seiteninhalte" collapsible defaultOpen>
-          <p className="text-xs text-text-muted -mt-1">Hier können die Haupttexte von Startseite, Über uns, Hüttennutzung, Impressum und Datenschutz gepflegt werden (HTML erlaubt).</p>
-          <SubSection title="Startseite" defaultOpen>
-            <HtmlField
-              label="Willkommensbox"
-              value={pageContent.homeWelcomeHtml}
-              onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, homeWelcomeHtml: v } })}
-              rows={8}
-            />
-          </SubSection>
-          <SubSection title="Über uns">
-            <div className="mb-4 space-y-3 p-3 bg-surface-alt border border-border rounded-lg">
-              <label className="block text-xs font-bold text-text uppercase tracking-wider">Bild der Über uns Seite</label>
-              {config.aboutImage ? (
+            {/* Banner Image */}
+            <Section title="Banner-Bild (Startseite)" collapsible>
+              <p className="text-xs text-text-muted mb-2">Laden Sie ein Bild für den Banner auf der Startseite hoch. Empfohlen: 1200×400px, max. 500 KB.</p>
+              {config.bannerImage ? (
                 <div className="space-y-3">
-                  <div className="relative rounded-lg overflow-hidden h-32 bg-surface-alt max-w-sm">
-                    <img src={config.aboutImage} alt="Über uns Bild" className="w-full h-full object-cover" />
+                  <div className="relative rounded-lg overflow-hidden h-32 bg-surface-alt">
+                    <img src={config.bannerImage} alt="Banner" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                   </div>
                   <button
-                    onClick={() => setConfig({ ...config, aboutImage: "", aboutImageCredit: "" })}
+                    onClick={() => setConfig({ ...config, bannerImage: "", bannerImageCredit: "" })}
                     className="text-sm text-red-600 hover:text-red-800 font-medium font-sans"
                   >
-                    ✕ Bild entfernen
+                    ✕ Banner-Bild entfernen
                   </button>
                 </div>
               ) : (
@@ -602,59 +436,113 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
                       if (!file) return;
                       if (file.size > 500 * 1024) { alert("Bild zu groß! Max. 500 KB."); return; }
                       const reader = new FileReader();
-                      reader.onload = () => setConfig({ ...config, aboutImage: reader.result as string });
+                      reader.onload = () => setConfig({ ...config, bannerImage: reader.result as string });
                       reader.readAsDataURL(file);
                     }}
-                    className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text--primary hover:file:bg-green-100 cursor-pointer"
+                    className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text--primary hover:file:bg-green-100"
                   />
-                  <p className="text-xs text-text-muted mt-1">Aktuell wird das Standardbild angezeigt.</p>
+                  <p className="text-xs text-text-muted mt-1">Aktuell wird ein grüner Gradient als Banner angezeigt.</p>
                 </div>
               )}
-              {config.aboutImage && (
-                <div className="mt-2">
+              {config.bannerImage && (
+                <div className="mt-3">
                   <Field
                     label="Bildquellennachweis / Urheberrecht *"
-                    value={config.aboutImageCredit || ""}
-                    onChange={(v) => setConfig({ ...config, aboutImageCredit: v })}
+                    value={config.bannerImageCredit || ""}
+                    onChange={(v) => setConfig({ ...config, bannerImageCredit: v })}
                   />
                   <p className="text-[11px] text-text-muted mt-1">
-                    Geben Sie den Urheber an (z. B. <code>Privat</code> oder <code>Foto: Gerd Hildebrand</code>). Das Feld darf nicht leer sein.
+                    Geben Sie den Urheber an (z. B. <code>Gerd Hildebrand</code> oder <code>© Name / Stockagentur</code>). Das Feld darf nicht leer sein.
                   </p>
                 </div>
               )}
-            </div>
-            <HtmlField
-              label="Hauptinhalt"
-              value={pageContent.aboutMainHtml}
-              onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, aboutMainHtml: v } })}
-              rows={12}
-            />
-          </SubSection>
-          <SubSection title="Hüttennutzung">
-            <HtmlField
-              label="Text oberhalb Kalender"
-              value={pageContent.huettennutzungIntroHtml}
-              onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, huettennutzungIntroHtml: v } })}
-              rows={10}
-            />
-          </SubSection>
-          <SubSection title="Impressum">
-            <HtmlField
-              label="Impressum-Inhalt"
-              value={pageContent.impressumHtml}
-              onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, impressumHtml: v } })}
-              rows={14}
-            />
-          </SubSection>
-          <SubSection title="Datenschutz">
-            <HtmlField
-              label="Datenschutz-Inhalt"
-              value={pageContent.datenschutzHtml}
-              onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, datenschutzHtml: v } })}
-              rows={14}
-            />
-          </SubSection>
-        </Section>
+            </Section>
+
+            {/* Contact */}
+            <Section title="Kontakt" collapsible>
+              <Field label="E-Mail" value={config.email} onChange={(v) => setConfig({ ...config, email: v })} type="email" />
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Telefon (mobil)" value={config.phone} onChange={(v) => setConfig({ ...config, phone: v })} />
+                <Field label="Hinweis" value={config.phoneNote} onChange={(v) => setConfig({ ...config, phoneNote: v })} />
+              </div>
+              <Field label="Telefon (fest)" value={config.phoneLandline} onChange={(v) => setConfig({ ...config, phoneLandline: v })} />
+            </Section>
+
+            {/* Address */}
+            <Section title="Adresse" collapsible>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-1">
+                  <Field label="Straße" value={config.address.street} onChange={(v) => setConfig({ ...config, address: { ...config.address, street: v } })} />
+                </div>
+                <Field label="PLZ" value={config.address.zip} onChange={(v) => setConfig({ ...config, address: { ...config.address, zip: v } })} />
+                <Field label="Ort" value={config.address.city} onChange={(v) => setConfig({ ...config, address: { ...config.address, city: v } })} />
+              </div>
+            </Section>
+
+            {/* Bank Account */}
+            <Section title="Spendenkonto" collapsible>
+              <Field label="Bank" value={config.bankAccount.bank} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, bank: v } })} />
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Kontonummer" value={config.bankAccount.accountNumber} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, accountNumber: v } })} />
+                <Field label="BLZ" value={config.bankAccount.blz} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, blz: v } })} />
+              </div>
+              <Field label="IBAN" value={config.bankAccount.iban} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, iban: v } })} />
+              <Field label="BIC" value={config.bankAccount.bic} onChange={(v) => setConfig({ ...config, bankAccount: { ...config.bankAccount, bic: v } })} />
+            </Section>
+
+            {/* Registry */}
+            <Section title="Register" collapsible>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Gericht" value={config.registry.court} onChange={(v) => setConfig({ ...config, registry: { ...config.registry, court: v } })} />
+                <Field label="Registernummer" value={config.registry.number} onChange={(v) => setConfig({ ...config, registry: { ...config.registry, number: v } })} />
+              </div>
+            </Section>
+
+            <Section title="Seiteninhalte" collapsible defaultOpen>
+              <p className="text-xs text-text-muted -mt-1">Hier können die Haupttexte von Startseite, Über uns, Hüttennutzung, Impressum und Datenschutz gepflegt werden (Markdown und Komponenten erlaubt).</p>
+              <SubSection title="Startseite" defaultOpen>
+                <HtmlField
+                  label="Willkommensbox"
+                  value={pageContent.homeWelcomeHtml}
+                  onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, homeWelcomeHtml: v } })}
+                  rows={8}
+                />
+              </SubSection>
+              <SubSection title="Über uns">
+                <HtmlField
+                  label="Hauptinhalt"
+                  value={pageContent.aboutMainHtml}
+                  onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, aboutMainHtml: v } })}
+                  rows={12}
+                />
+              </SubSection>
+              <SubSection title="Hüttennutzung">
+                <HtmlField
+                  label="Text oberhalb Kalender"
+                  value={pageContent.huettennutzungIntroHtml}
+                  onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, huettennutzungIntroHtml: v } })}
+                  rows={10}
+                />
+              </SubSection>
+              <SubSection title="Impressum">
+                <HtmlField
+                  label="Impressum-Inhalt"
+                  value={pageContent.impressumHtml}
+                  onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, impressumHtml: v } })}
+                  rows={14}
+                />
+              </SubSection>
+              <SubSection title="Datenschutz">
+                <HtmlField
+                  label="Datenschutz-Inhalt"
+                  value={pageContent.datenschutzHtml}
+                  onChange={(v) => setConfig({ ...config, pageContent: { ...pageContent, datenschutzHtml: v } })}
+                  rows={14}
+                />
+              </SubSection>
+            </Section>
+          </>
+        )}
 
         <div className="flex gap-3 pt-3 border-t border-border">
           <button onClick={handleSave} className="bg--primary text-white px-6 py-2.5 rounded-lg font-semibold hover:bg--primary-dark transition-colors">
@@ -662,44 +550,6 @@ function SettingsEditor({ onSaved }: { onSaved: () => void }) {
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-// ─── Board Editor (sub-component) ──────────────────────────
-
-function BoardEditor({ board, onChange }: { board: SiteConfig["board"]; onChange: (b: SiteConfig["board"]) => void }) {
-  const addMember = () => onChange([...board, { name: "", role: "" }]);
-  const removeMember = (i: number) => onChange(board.filter((_, idx) => idx !== i));
-  const updateMember = (i: number, field: "name" | "role", value: string) =>
-    onChange(board.map((m, idx) => (idx === i ? { ...m, [field]: value } : m)));
-
-  return (
-    <div className="space-y-3">
-      {board.map((member, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <input
-            type="text"
-            value={member.name}
-            onChange={(e) => updateMember(i, "name", e.target.value)}
-            className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
-            placeholder="Name"
-          />
-          <input
-            type="text"
-            value={member.role}
-            onChange={(e) => updateMember(i, "role", e.target.value)}
-            className="w-40 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring--primary focus:border-transparent outline-none"
-            placeholder="Rolle (optional)"
-          />
-          <button onClick={() => removeMember(i)} className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Entfernen">
-            ✕
-          </button>
-        </div>
-      ))}
-      <button onClick={addMember} className="text-sm text--primary font-medium hover:underline">
-        + Mitglied hinzufügen
-      </button>
     </div>
   );
 }
@@ -1403,15 +1253,15 @@ function HtmlField({ label, value, onChange, rows = 10 }: {
 
       {!showPreview && (
         <div className="flex gap-1 flex-wrap relative">
-          <HtmlFormatBtn label="Fett" icon={faBold} onClick={() => insertHtml("<strong>", "</strong>")} />
-          <HtmlFormatBtn label="Kursiv" icon={faItalic} onClick={() => insertHtml("<em>", "</em>")} />
+          <HtmlFormatBtn label="Fett" icon={faBold} onClick={() => insertHtml("**", "**")} />
+          <HtmlFormatBtn label="Kursiv" icon={faItalic} onClick={() => insertHtml("_", "_")} />
           <HtmlFormatBtn label="Unterstrichen" icon={faUnderline} onClick={() => insertHtml("<u>", "</u>")} />
-          <HtmlFormatBtn label="H1" icon={faHeading} onClick={() => insertHtml("<h1>", "</h1>")} />
-          <HtmlFormatBtn label="H2" icon={faHeading} onClick={() => insertHtml("<h2>", "</h2>")} />
-          <HtmlFormatBtn label="H3" icon={faHeading} onClick={() => insertHtml("<h3>", "</h3>")} />
-          <HtmlFormatBtn label="Absatz" icon={faParagraph} onClick={() => insertHtml("<p>", "</p>")} />
-          <HtmlFormatBtn label="Liste" icon={faListUl} onClick={() => insertHtml("<ul>\n<li>", "</li>\n</ul>")} />
-          <HtmlFormatBtn label="Link" icon={faLink} onClick={() => insertHtml('<a href="URL">', "</a>")} />
+          <HtmlFormatBtn label="H1" icon={faHeading} onClick={() => insertHtml("# ")} />
+          <HtmlFormatBtn label="H2" icon={faHeading} onClick={() => insertHtml("## ")} />
+          <HtmlFormatBtn label="H3" icon={faHeading} onClick={() => insertHtml("### ")} />
+          <HtmlFormatBtn label="Absatz" icon={faParagraph} onClick={() => insertHtml("\n\n", "\n\n")} />
+          <HtmlFormatBtn label="Liste" icon={faListUl} onClick={() => insertHtml("- ")} />
+          <HtmlFormatBtn label="Link" icon={faLink} onClick={() => insertHtml("[", "](URL)")} />
           <HtmlImagePickerButton onInsert={(html) => insertHtml(html)} />
         </div>
       )}

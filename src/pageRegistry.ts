@@ -1,17 +1,13 @@
-﻿import Home from "./pages/Home";
-import About from "./pages/About";
-import Activities from "./pages/Activities";
-import Huettennutzung from "./pages/Huettennutzung";
-import Impressum from "./pages/Impressum";
-import Datenschutz from "./pages/Datenschutz";
-import Admin from "./pages/Admin";
+﻿import type { ComponentType } from "react";
 
-export const pageRegistry: Record<string, React.ComponentType> = {
-  Home,
-  About,
-  Activities,
-  Huettennutzung,
-  Impressum,
-  Datenschutz,
-  Admin,
-};
+const pageModules = import.meta.glob("./pages/*.tsx", {
+  eager: true,
+  import: "default",
+}) as Record<string, ComponentType>;
+
+export const pageRegistry: Record<string, ComponentType> = Object.fromEntries(
+  Object.entries(pageModules).map(([path, Component]) => {
+    const name = path.match(/\.\/pages\/(.+)\.tsx$/)?.[1];
+    return [name, Component];
+  }).filter(([name]) => !!name)
+);

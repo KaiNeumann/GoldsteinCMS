@@ -6,7 +6,8 @@
   useCallback,
   type ReactNode,
 } from "react";
-import { defaultContent, type ContentData, type Post, type SiteConfig, type SiteImage } from "../content/defaultContent";
+import { defaultContent, type CmsComponent, type ContentData, type Post, type SiteConfig, type SiteImage } from "../content/defaultContent";
+import { migrateSiteConfigToFields } from "../content/migrateSiteConfig";
 
 const STORAGE_KEY = "goldsteinfreunde_content";
 const DEV_ADMIN_PASSWORD_RAW = import.meta.env.VITE_DEV_ADMIN_PASSWORD as string | undefined;
@@ -21,6 +22,9 @@ interface ContentContextType {
   savePost: (post: Post) => void;
   deletePost: (id: string) => void;
   updateSiteConfig: (config: SiteConfig) => void;
+  updateFields: (fields: Record<string, unknown>) => void;
+  saveComponent: (component: CmsComponent) => void;
+  deleteComponent: (id: string) => void;
   // Image operations
   addImage: (image: SiteImage) => void;
   deleteImage: (id: string) => void;
@@ -148,6 +152,38 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const updateFields = useCallback((fields: Record<string, unknown>) => {
+    setContent((prev) => {
+      const updated = { ...prev, fields: sanitizeFields(fields) };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const saveComponent = useCallback((component: CmsComponent) => {
+    setContent((prev) => {
+      const updated = {
+        ...prev,
+        components: {
+          ...(prev.components || {}),
+          [component.id]: component,
+        },
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const deleteComponent = useCallback((id: string) => {
+    setContent((prev) => {
+      const nextComponents = { ...(prev.components || {}) };
+      delete nextComponents[id];
+      const updated = { ...prev, components: nextComponents };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   const addImage = useCallback((image: SiteImage) => {
     setContent((prev) => {
       const updated = { ...prev, images: [image, ...(prev.images || [])] };
@@ -243,8 +279,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   const importFromJson = useCallback((json: string): { success: boolean; error?: string } => {
     try {
       const data = JSON.parse(json) as ContentData;
-      if (!data.posts || !data.siteConfig) {
-        return { success: false, error: "Ungültiges Format: posts und siteConfig erforderlich" };
+      if (!data.posts) {
+        return { success: false, error: "Ungültiges Format: posts erforderlich" };
       }
       const normalized = normalizeContent(data);
       setContent(normalized);
@@ -295,6 +331,9 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         savePost,
         deletePost,
         updateSiteConfig,
+        updateFields,
+        saveComponent,
+        deleteComponent,
         addImage,
         deleteImage,
         validateAdminPassword,
@@ -315,13 +354,28 @@ export function ContentProvider({ children }: { children: ReactNode }) {
 function normalizeContent(data: ContentData): ContentData {
   const defaults = defaultContent.siteConfig;
   const siteConfig = data.siteConfig || defaults;
+  const siteConfigFields = migrateSiteConfigToFields({
+    ...defaults,
+    ...siteConfig,
+    address: { ...defaults.address, ...siteConfig.address },
+    bankAccount: { ...defaults.bankAccount, ...siteConfig.bankAccount },
+    registry: { ...defaults.registry, ...siteConfig.registry },
+    responsibleContent: { ...defaults.responsibleContent, ...siteConfig.responsibleContent },
+    pageContent: { ...defaults.pageContent, ...siteConfig.pageContent },
+  });
   const normalized: ContentData = {
     ...data,
-    posts: sortPostsNewestFirst((data.posts || []).map((post) => ({ ...post, content: sanitizeHtml(post.content || "") }))),
+    posts: sortPostsNewestFirst((data.posts || []).map((post) => ({ ...post, content: sanitizeContentString(post.content || "") }))),
     images: (data.images || []).map((img) => ({
       ...img,
       copyright: img.copyright || "Privat",
     })),
+    components: normalizeComponents(data.components),
+    fields: sanitizeFields({
+      ...migrateSiteConfigToFields(defaults),
+      ...siteConfigFields,
+      ...(data.fields || {}),
+    }),
     siteConfig: {
       ...defaults,
       ...siteConfig,
@@ -329,21 +383,42 @@ function normalizeContent(data: ContentData): ContentData {
       bankAccount: { ...defaults.bankAccount, ...siteConfig.bankAccount },
       registry: { ...defaults.registry, ...siteConfig.registry },
       responsibleContent: { ...defaults.responsibleContent, ...siteConfig.responsibleContent },
-      board: siteConfig.board || defaults.board,
       bannerImage: siteConfig.bannerImage || defaults.bannerImage,
       bannerImageCredit: siteConfig.bannerImageCredit || defaults.bannerImageCredit || "Gerd Hildebrand",
-      aboutImage: siteConfig.aboutImage || defaults.aboutImage || "/images/about-goldsteinpark.jpg",
-      aboutImageCredit: siteConfig.aboutImageCredit || defaults.aboutImageCredit || "Privat",
       pageContent: {
-        homeWelcomeHtml: sanitizeHtml(siteConfig.pageContent?.homeWelcomeHtml || defaults.pageContent.homeWelcomeHtml),
-        aboutMainHtml: sanitizeHtml(siteConfig.pageContent?.aboutMainHtml || defaults.pageContent.aboutMainHtml),
-        huettennutzungIntroHtml: sanitizeHtml(siteConfig.pageContent?.huettennutzungIntroHtml || defaults.pageContent.huettennutzungIntroHtml),
-        impressumHtml: sanitizeHtml(siteConfig.pageContent?.impressumHtml || defaults.pageContent.impressumHtml),
-        datenschutzHtml: sanitizeHtml(siteConfig.pageContent?.datenschutzHtml || defaults.pageContent.datenschutzHtml),
+        homeWelcomeHtml: sanitizeContentString(siteConfig.pageContent?.homeWelcomeHtml || defaults.pageContent.homeWelcomeHtml),
+        aboutMainHtml: sanitizeContentString(siteConfig.pageContent?.aboutMainHtml || defaults.pageContent.aboutMainHtml),
+        huettennutzungIntroHtml: sanitizeContentString(siteConfig.pageContent?.huettennutzungIntroHtml || defaults.pageContent.huettennutzungIntroHtml),
+        impressumHtml: sanitizeContentString(siteConfig.pageContent?.impressumHtml || defaults.pageContent.impressumHtml),
+        datenschutzHtml: sanitizeContentString(siteConfig.pageContent?.datenschutzHtml || defaults.pageContent.datenschutzHtml),
       },
     },
   };
   return normalized;
+}
+
+function normalizeComponents(components: ContentData["components"]): Record<string, CmsComponent> {
+  if (!components || typeof components !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(components).filter(([, component]) => {
+      return component && typeof component.id === "string" && typeof component.type === "string" && typeof component.data === "object";
+    })
+  );
+}
+
+function sanitizeFields(fields: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(fields).map(([key, value]) => {
+      if (typeof value === "string" && isHtmlFieldKey(key)) {
+        return [key, sanitizeContentString(value)];
+      }
+      return [key, value];
+    })
+  );
+}
+
+function isHtmlFieldKey(key: string): boolean {
+  return key.endsWith(".html") || key.endsWith("Html");
 }
 
 function sortPostsNewestFirst(posts: Post[]): Post[] {
@@ -354,16 +429,16 @@ function sortPostsNewestFirst(posts: Post[]): Post[] {
   });
 }
 
-function sanitizeHtml(html: string): string {
-  let clean = html;
-  clean = clean.replace(/<\s*(script|style|iframe|object|embed|form|video|audio|canvas|svg|math)[\s\S]*?<\s*\/\s*\1\s*>/gi, "");
-  clean = clean.replace(/<\/?(?:script|style|iframe|object|embed|form|input|button|textarea|select|option|link|meta|base|video|audio|canvas|svg|math)[^>]*>/gi, "");
-  clean = clean.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
-  clean = clean.replace(/\s+style\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
-  clean = clean.replace(/\s+(href|src)\s*=\s*("|')\s*javascript:[\s\S]*?\2/gi, "");
-  clean = clean.replace(/\s+href\s*=\s*("|')\s*data:[\s\S]*?\1/gi, "");
-  clean = clean.replace(/\s+src\s*=\s*("|')\s*data:(?!image\/(?:png|jpe?g|gif|webp);base64,)[\s\S]*?\1/gi, "");
-  return clean;
+function sanitizeContentString(value: string): string {
+  return escapeAuthoredHtml(sanitizeMarkdownUrls(value));
+}
+
+function sanitizeMarkdownUrls(value: string): string {
+  return value.replace(/\]\(\s*(javascript:|data:)[^)]+\)/gi, "](unsafe-url-removed)");
+}
+
+function escapeAuthoredHtml(value: string): string {
+  return value.replace(/<\/?[a-zA-Z][^>]*>/g, (tag) => tag.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
 }
 
 function normalizeDevPassword(value: string | undefined): string {

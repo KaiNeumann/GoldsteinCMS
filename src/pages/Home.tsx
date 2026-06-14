@@ -1,4 +1,5 @@
 ﻿import { useContent } from "../context/ContentContext";
+import { useContentFields } from "../context/ContentFields";
 import { formatDate } from "../content/defaultContent";
 import { Link } from "react-router-dom";
 import { site } from "../siteConfig";
@@ -6,6 +7,7 @@ import CmsContent from "../components/CmsContent";
 
 export default function Home() {
   const { content } = useContent();
+  const { getStringField } = useContentFields();
   const latestPost = content.posts[0];
 
   const WelcomeBlock = () => (
@@ -18,7 +20,7 @@ export default function Home() {
         </div>
         <div>
           <CmsContent
-            html={content.siteConfig.pageContent.homeWelcomeHtml}
+            html={getStringField("pages.home.welcomeHtml")}
             className="prose-green max-w-none text-sm text-text leading-relaxed
               [&_h3]:font-bold [&_h3]:text--primary [&_h3]:mb-1
               [&_p]:mb-3 [&_p:last-child]:mb-0
@@ -26,7 +28,7 @@ export default function Home() {
               [&_strong]:text-text"
           />
           <Link
-            to="/ueber-uns"
+            to="/about"
             className="inline-flex items-center gap-1 text-sm text--primary font-semibold hover:text--primary-dark mt-2 no-underline"
           >
             Mehr über uns erfahren
@@ -90,7 +92,7 @@ export default function Home() {
           {content.posts.slice(1).map((post) => (
             <Link
               key={post.id}
-              to={`/aktivitaeten?post=${post.id}`}
+              to={`/community?post=${post.id}`}
               className="block px-6 py-4 hover:bg-green-50 transition-colors no-underline"
             >
               <div className="flex items-start justify-between gap-4">
